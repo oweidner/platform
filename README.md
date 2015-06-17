@@ -28,6 +28,15 @@ go get github.com/codewerft/platform
 
 The Platform sources are in ` ~/workspace/platform/src/github.com/codewerft/platform`.
 
+### Recompile
+
+???
+
+```
+go install -a -v github.com/codewerft/platform && go build && ./example -config=sample.cfg
+```
+
+
 ### Run the Example
 
 Build the example server:

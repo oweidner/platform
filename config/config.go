@@ -10,10 +10,7 @@
 
 package config
 
-import (
-	"errors"
-	"fmt"
-)
+import "fmt"
 
 // The Config struct defines the structure of the configuration file.
 //
@@ -24,8 +21,10 @@ type Config struct {
 		AdminUser     string `gcfg:"adminuser"`
 		AdminPassword string `gcfg:"adminpassword"`
 	}
-	ServerTLS struct {
-		Listen string `gcfg:"listen"`
+	TLS struct {
+		EnableTLS bool
+		KeyFile   string
+		CertFile  string
 	}
 
 	JWT struct {
@@ -41,31 +40,40 @@ type Config struct {
 
 // CheckConfig checks the configuration file values and sets defaults
 // wherever necessary.
-func CheckConfig(config *Config) error {
+func CheckConfig(config *Config, filename string) error {
 
-	fmt.Printf("Hello there")
+	// Return an error if TLS is enabled and cert or Key are not provided
+	if config.TLS.EnableTLS == true {
+		if config.TLS.KeyFile == "" {
+			return fmt.Errorf("%v: EnableTLS is set, but KeyFile is not defined", filename)
+		}
+		if config.TLS.CertFile == "" {
+			return fmt.Errorf("%v: EnableTLS is set, but CertFile is not defined", filename)
+		}
+
+	}
 
 	// Return an error if no Server.StorageBackend is defined.
 	if config.Server.Listen == "" {
-		return errors.New("config: Configuration doesn't define mandatory Server.Listen")
+		return fmt.Errorf("%v: Configuration doesn't define mandatory Server.Listen", filename)
 	}
 
 	// Return an error if no Server.StorageBackend is defined.
 	if config.Server.AdminUser == "" {
-		return errors.New("config: Configuration doesn't define mandatory Server.AdminUser")
+		return fmt.Errorf("%v: Configuration doesn't define mandatory Server.AdminUser", filename)
 	}
 	// Return an error if no Server.StorageBackend is defined.
 	if config.Server.AdminPassword == "" {
-		return errors.New("config: Configuration doesn't define mandatory Server.AdminPassword")
+		return fmt.Errorf("%v: Configuration doesn't define mandatory Server.AdminPassword", filename)
 	}
 
 	// Return an error if no JWT Public Key is defined.
 	if config.JWT.PublicKey == "" {
-		return errors.New("config: Configuration doesn't define mandatory JWT.public_key")
+		return fmt.Errorf("%v: Configuration doesn't define mandatory JWT.public_key", filename)
 	}
 	// Return an error if no JWT Private Key is defined.
 	if config.JWT.PrivateKey == "" {
-		return errors.New("config: Configuration doesn't define mandatory JWT.private_key")
+		return fmt.Errorf("%v: Configuration doesn't define mandatory JWT.private_key", filename)
 	}
 
 	// Set the default to 12 hours if JWT:Expiration is not defined.
@@ -74,10 +82,10 @@ func CheckConfig(config *Config) error {
 	}
 
 	if config.MySQL.Host == "" {
-		return errors.New("config: 'mongodb' storage backend requires MySQL.host config option")
+		return fmt.Errorf("%v: 'mongodb' storage backend requires MySQL.host config option", filename)
 	}
 	if config.MySQL.Database == "" {
-		return errors.New("config: 'mongodb' storage backend requires MySQL.database config option")
+		return fmt.Errorf("%v: 'mongodb' storage backend requires MySQL.database config option", filename)
 	}
 
 	return nil

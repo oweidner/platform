@@ -35,8 +35,6 @@ type Platform struct {
 // New creates a bare bones Platform instance.
 func New(configFile *string) *Platform {
 
-	fmt.Printf("test")
-
 	var cfg config.Config
 
 	// Read the configuration.
@@ -46,7 +44,7 @@ func New(configFile *string) *Platform {
 	}
 
 	// Check configuration semantics
-	err = config.CheckConfig(&cfg)
+	err = config.CheckConfig(&cfg, *configFile)
 	if err != nil {
 		logging.Log.Fatal(err)
 	}
@@ -87,10 +85,30 @@ func New(configFile *string) *Platform {
 // Serve launches the Platform HTTP(S) server.
 func (p *Platform) Serve() error {
 
-	logging.Log.Info("HTTP server listening on %v", p.Config.Server.Listen)
-	if err := http.ListenAndServe(p.Config.Server.Listen, p.Server); err != nil {
-		logging.Log.Fatal(fmt.Sprintf("Error starting server: %v", err))
-	}
+	// if TLS is enable in the configuration file, we start
+	// an HTTPS server with the provided X.509 certificates,
+	// otherwise, start an HTTP server.without TLS.
+	if p.Config.TLS.EnableTLS == true {
+		logging.Log.Info("HTTPS / TLS enabled. Using X.509 keypair %v and %v", p.Config.TLS.CertFile, p.Config.TLS.KeyFile)
+		logging.Log.Info("Codewerft Platform server available at https://localhost%v", p.Config.Server.Listen)
 
+		if err := http.ListenAndServeTLS(
+			p.Config.Server.Listen,
+			p.Config.TLS.CertFile,
+			p.Config.TLS.KeyFile,
+			p.Server); err != nil {
+			logging.Log.Fatal(fmt.Sprintf("Error starting Codewerft Platform server: %v", err))
+		}
+
+	} else {
+		logging.Log.Warning("***********************************************************************************")
+		logging.Log.Warning("!! HTTPS / TLS DISABLED -- DO NOT RUN THIS SERVER IN A PRODUCTION ENVIRONMENT    !!")
+		logging.Log.Warning("***********************************************************************************")
+
+		logging.Log.Info("Codewerft Platform server available at http://localhost%v", p.Config.Server.Listen)
+		if err := http.ListenAndServe(p.Config.Server.Listen, p.Server); err != nil {
+			logging.Log.Fatal(fmt.Sprintf("Error starting Codewerft Platform server: %v", err))
+		}
+	}
 	return nil
 }
