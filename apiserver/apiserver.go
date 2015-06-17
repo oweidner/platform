@@ -83,8 +83,6 @@ func AddDefaultResource(r martini.Router, basePath string, authEnabled bool,
 func NewServer(ds database.Datastore, ap auth.Authenticator, authEnabled bool,
 	privKey []byte, pubKey []byte, expiration int) *martini.Martini {
 
-	logging.Log.Info("Starting Codewerft Platform %v", ServerVersion)
-
 	// Print a big fat warning if authentication is disabled.
 	logging.Log.Warning("***********************************************************************************")
 	logging.Log.Warning("!! AUTHENTICATION DISABLED -- DO NOT RUN THIS SERVER IN A PRODUCTION ENVIRONMENT !!")

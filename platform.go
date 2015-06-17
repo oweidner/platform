@@ -68,7 +68,7 @@ func New(configFile *string) *Platform {
 
 	// Instantiate / start-up the storage backend
 	var ds database.Datastore
-	ds = database.NewDefaultDatastore(cfg.MySQL.Host, cfg.MySQL.Database)
+	ds = database.NewDefaultDatastore(cfg.MySQL.Host, cfg.MySQL.Database, cfg.MySQL.Username, cfg.MySQL.Password)
 	defer ds.Close()
 
 	// Instantiate / start-up the authentication backend

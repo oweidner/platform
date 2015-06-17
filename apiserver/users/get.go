@@ -49,8 +49,12 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 		return
 	}
 
-	// Return the user.
-	responses.GetOK(r, users)
+	// Return the list of users or a 404 if the user wasn't found.
+	if userID != -1 && len(users) < 1 {
+		responses.GetNotFound(r)
+	} else {
+		responses.GetOK(r, users)
+	}
 }
 
 // DBGetUsers returns a User object from the database.

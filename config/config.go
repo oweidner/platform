@@ -33,8 +33,10 @@ type Config struct {
 		PrivateKey string `gcfg:"privatekey"`
 	}
 	MySQL struct {
-		Host     string `gcfg:"host"`
-		Database string `gcfg:"database"`
+		Host     string
+		Database string
+		Username string
+		Password string
 	}
 }
 
@@ -81,9 +83,9 @@ func CheckConfig(config *Config, filename string) error {
 		config.JWT.Expiration = 12
 	}
 
-	if config.MySQL.Host == "" {
-		return fmt.Errorf("%v: 'mongodb' storage backend requires MySQL.host config option", filename)
-	}
+	// if config.MySQL.Host == "" {
+	// 	return fmt.Errorf("%v: 'mongodb' storage backend requires MySQL.host config option", filename)
+	// }
 	if config.MySQL.Database == "" {
 		return fmt.Errorf("%v: 'mongodb' storage backend requires MySQL.database config option", filename)
 	}

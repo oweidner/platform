@@ -43,14 +43,18 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 	}
 	// Retrieve the (list of) plans from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
-	users, err := DBGetPlans(db.Get(), planID)
+	plans, err := DBGetPlans(db.Get(), planID)
 	if err != nil {
 		responses.GetError(r, err.Error())
 		return
 	}
 
-	// Return the user.
-	responses.GetOK(r, users)
+	// Return the list of plans or a 404 if the user wasn't found.
+	if planID != -1 && len(plans) < 1 {
+		responses.GetNotFound(r)
+	} else {
+		responses.GetOK(r, plans)
+	}
 }
 
 // DBGetPlans returns a Plan object from the database.

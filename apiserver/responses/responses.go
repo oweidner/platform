@@ -33,6 +33,13 @@ func GetError(r render.Render, message string) {
 	r.JSON(http.StatusBadRequest, result)
 }
 
+// XGetNotFound sends a 404 message back to the client.
+func GetNotFound(r render.Render) {
+	status := Status{
+		Status: "Error", Message: "Resource not found"}
+	r.JSON(http.StatusNotFound, status)
+}
+
 // XGetOK sends the result back to the client.
 func GetOK(r render.Render, data interface{}) {
 	result := GetResponse{Status{
