@@ -1,0 +1,67 @@
+//  ██████╗ ██████╗ ██████╗ ███████╗██╗    ██╗███████╗██████╗ ███████╗████████╗
+// ██╔════╝██╔═══██╗██╔══██╗██╔════╝██║    ██║██╔════╝██╔══██╗██╔════╝╚══██╔══╝
+// ██║     ██║   ██║██║  ██║█████╗  ██║ █╗ ██║█████╗  ██████╔╝█████╗     ██║
+// ██║     ██║   ██║██║  ██║██╔══╝  ██║███╗██║██╔══╝  ██╔══██╗██╔══╝     ██║
+// ╚██████╗╚██████╔╝██████╔╝███████╗╚███╔███╔╝███████╗██║  ██║██║        ██║
+//  ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝ ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝╚═╝        ╚═╝
+//
+// Copyright 2015 Codewerft UG (http://www.codewerft.net).
+// All rights reserved.
+
+package plans
+
+import (
+	"database/sql"
+
+	"codewerft.net/platform/apiserver/responses"
+	"codewerft.net/platform/database"
+
+	"github.com/gavv/martini-render"
+	"github.com/go-martini/martini"
+)
+
+// CreatePlanRequest is the object that is expected by the
+// Create() function.
+type CreatePlanRequest struct {
+	Name string `binding:"required"`
+}
+
+// Create creates a new User object in
+// the database.
+func Create(r render.Render, params martini.Params, db database.Datastore, data CreatePlanRequest) {
+
+	// Store the plan object in the database. In case the
+	// database operation fails, an error response is sent back to the caller.
+	newPlan, err := DBCreatePlan(db.Get(), data)
+	if err != nil {
+		responses.CreateError(r, err.Error())
+		return
+	}
+	// Return the user.
+	responses.CreateOK(r, newPlan)
+}
+
+// DBCreatePlan creates a new User object in the database.
+//
+func DBCreatePlan(db *sql.DB, data CreatePlanRequest) (PlanList, error) {
+
+	stmt, err := db.Prepare(`INSERT plan SET name=?`)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := stmt.Exec(data.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	// The id of the newly generated plan
+	planID, _ := res.LastInsertId()
+	// Retrieve the newly created object from the database and return it
+	plans, err := DBGetPlans(db, planID)
+	if err != nil {
+		return nil, err
+	}
+	// Return the user object.
+	return plans, nil
+}
