@@ -16,11 +16,11 @@ import (
 	"net/http"
 
 	"code.google.com/p/gcfg"
-	"codewerft.net/platform/apiserver"
-	"codewerft.net/platform/auth"
-	"codewerft.net/platform/config"
-	"codewerft.net/platform/database"
-	"codewerft.net/platform/logging"
+	"github.com/codewerft/platform/apiserver"
+	"github.com/codewerft/platform/auth"
+	"github.com/codewerft/platform/config"
+	"github.com/codewerft/platform/database"
+	"github.com/codewerft/platform/logging"
 	"github.com/go-martini/martini"
 	"golang.org/x/crypto/bcrypt"
 )

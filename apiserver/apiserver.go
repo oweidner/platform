@@ -13,12 +13,12 @@ package apiserver
 import (
 	"fmt"
 
-	"codewerft.net/platform/auth"
-	"codewerft.net/platform/database"
-	"codewerft.net/platform/logging"
+	"github.com/codewerft/platform/auth"
+	"github.com/codewerft/platform/database"
+	"github.com/codewerft/platform/logging"
 
-	"codewerft.net/platform/apiserver/plans"
-	"codewerft.net/platform/apiserver/users"
+	"github.com/codewerft/platform/apiserver/plans"
+	"github.com/codewerft/platform/apiserver/users"
 
 	"github.com/attilaolah/strict"
 	"github.com/gavv/martini-render"

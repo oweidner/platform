@@ -18,8 +18,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gavv/martini-render"
 
-	"codewerft.net/platform/auth"
-	"codewerft.net/platform/logging"
+	"github.com/codewerft/platform/auth"
+	"github.com/codewerft/platform/logging"
 )
 
 // Auth is called for every POST request on the /auth resource.

@@ -15,8 +15,8 @@ import (
 	"net/http"
 	"time"
 
-	"codewerft.net/platform/auth"
-	"codewerft.net/platform/logging"
+	"github.com/codewerft/platform/auth"
+	"github.com/codewerft/platform/logging"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gavv/martini-render"

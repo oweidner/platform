@@ -15,8 +15,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"codewerft.net/platform/apiserver/responses"
-	"codewerft.net/platform/database"
+	"github.com/codewerft/platform/apiserver/responses"
+	"github.com/codewerft/platform/database"
 
 	"github.com/gavv/martini-render"
 	"github.com/go-martini/martini"
