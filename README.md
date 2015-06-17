@@ -28,13 +28,31 @@ go get github.com/codewerft/platform
 
 The Platform sources are in ` ~/workspace/platform/src/github.com/codewerft/platform`.
 
-### Run the example
+### Run the Example
 
 Build the example server:
 
 ```
 cd  ~/workspace/platform/src/github.com/codewerft/platform/example
 go install
+```
+
+### Generate JWT Keypairs
+
+Generate an RSA keypair for JWT encryption.
+
+```
+openssl genrsa -out jwt_sample.rsa 4096
+openssl rsa -in jwt_sample.rsa -pubout > jwt_sample.rsa.pub
+```
+
+### Generate TLS Certificate
+
+Generate a self-signed X.509 certificate tp run the _Platform_ server in TLS mode.
+
+```
+openssl genrsa -out jwt_sample.rsa 4096
+openssl rsa -in jwt_sample.rsa -pubout > jwt_sample.rsa.pub
 ```
 
 Run the example server:
