@@ -68,3 +68,8 @@ Run the example server:
 ```
 $GOPATH/bin/example --config=sample.cfg
 ```
+
+
+## Notes
+
+* Testing: http://dennissuratna.com/testing-in-go/
