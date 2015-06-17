@@ -10,7 +10,10 @@
 
 package config
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // The Config struct defines the structure of the configuration file.
 //
@@ -21,6 +24,10 @@ type Config struct {
 		AdminUser     string `gcfg:"adminuser"`
 		AdminPassword string `gcfg:"adminpassword"`
 	}
+	ServerTLS struct {
+		Listen string `gcfg:"listen"`
+	}
+
 	JWT struct {
 		Expiration int    `gcfg:"expiration"`
 		PublicKey  string `gcfg:"publickey"`
@@ -35,6 +42,8 @@ type Config struct {
 // CheckConfig checks the configuration file values and sets defaults
 // wherever necessary.
 func CheckConfig(config *Config) error {
+
+	fmt.Printf("Hello there")
 
 	// Return an error if no Server.StorageBackend is defined.
 	if config.Server.Listen == "" {

@@ -35,6 +35,8 @@ type Platform struct {
 // New creates a bare bones Platform instance.
 func New(configFile *string) *Platform {
 
+	fmt.Printf("test")
+
 	var cfg config.Config
 
 	// Read the configuration.

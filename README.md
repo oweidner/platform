@@ -51,8 +51,7 @@ openssl rsa -in jwt_sample.rsa -pubout > jwt_sample.rsa.pub
 Generate a self-signed X.509 certificate tp run the _Platform_ server in TLS mode.
 
 ```
-openssl genrsa -out jwt_sample.rsa 4096
-openssl rsa -in jwt_sample.rsa -pubout > jwt_sample.rsa.pub
+go run /usr/local/go/src/crypto/tls/generate_cert.go --host="localhost"
 ```
 
 Run the example server:
