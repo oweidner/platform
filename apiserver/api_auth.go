@@ -25,9 +25,8 @@ import (
 // AuthRequest is the object that is sent to us in order to request
 // a new authentication token.
 type AuthRequest struct {
-	Organization string `json:"organization" binding:"required"`
-	Username     string `json:"username"     binding:"required"`
-	Password     string `json:"password"     binding:"required"`
+	Username string `json:"username"     binding:"required"`
+	Password string `json:"password"     binding:"required"`
 }
 
 // AuthResponse is the object that is sent by us as a response to a
@@ -40,16 +39,16 @@ type AuthResponse struct {
 func Auth(u AuthRequest, a auth.Authenticator, r render.Render) {
 
 	// Authenticate the user with the password provided
-	user, err := a.Auth(u.Organization, u.Username, []byte(u.Password))
+	user, err := a.Auth(u.Username, []byte(u.Password))
 	if err != nil {
-		logging.Log.Error(fmt.Sprintf("[auth] Authentication failed for user %v @ %v", u.Username, u.Organization))
+		logging.Log.Error(fmt.Sprintf("[auth] Authentication failed for user %v", u.Username))
 		r.JSON(http.StatusUnauthorized,
 			ErrorResponse{
 				Code:    http.StatusUnauthorized,
 				Message: "Authorization Failed"})
 		return
 	} else {
-		logging.Log.Info(fmt.Sprintf("[auth] Authentication granted to user %v @ %v", u.Username, u.Organization))
+		logging.Log.Info(fmt.Sprintf("[auth] Authentication granted to user %v", u.Username))
 	}
 
 	// Create a new JWT token

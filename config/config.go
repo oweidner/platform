@@ -17,6 +17,7 @@ import "fmt"
 type Config struct {
 	Server struct {
 		Listen        string `gcfg:"listen"`
+		APIPrefix     string
 		DisableAuth   bool   `gcfg:"disableauth"`
 		AdminUser     string `gcfg:"adminuser"`
 		AdminPassword string `gcfg:"adminpassword"`
@@ -43,6 +44,11 @@ type Config struct {
 // CheckConfig checks the configuration file values and sets defaults
 // wherever necessary.
 func CheckConfig(config *Config, filename string) error {
+
+	// Set the default to 12 hours if JWT:Expiration is not defined.
+	if config.Server.APIPrefix == "" {
+		config.Server.APIPrefix = "platform"
+	}
 
 	// Return an error if TLS is enabled and cert or Key are not provided
 	if config.TLS.EnableTLS == true {

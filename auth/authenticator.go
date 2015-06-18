@@ -28,6 +28,6 @@ type User struct {
 
 // Authenticator defines the interface for all authentication providers.
 type Authenticator interface {
-	Auth(organization string, username string, password []byte) (User, error)
+	Auth(username string, password []byte) (User, error)
 	Close()
 }

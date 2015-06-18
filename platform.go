@@ -32,6 +32,9 @@ type Platform struct {
 	Server *martini.Martini
 }
 
+var ap auth.Authenticator
+var ds database.Datastore
+
 // New creates a bare bones Platform instance.
 func New(configFile *string) *Platform {
 
@@ -67,16 +70,15 @@ func New(configFile *string) *Platform {
 	}
 
 	// Instantiate / start-up the storage backend
-	var ds database.Datastore
 	ds = database.NewDefaultDatastore(cfg.MySQL.Host, cfg.MySQL.Database, cfg.MySQL.Username, cfg.MySQL.Password)
 	defer ds.Close()
 
 	// Instantiate / start-up the authentication backend
-	var ap auth.Authenticator
-	ap = auth.NewDefaultAuthProvider(userList)
-	defer ap.Close()
 
-	server := apiserver.NewServer(ds, ap, !cfg.Server.DisableAuth, jwtPrivateKey, jwtPublicKey, cfg.JWT.Expiration)
+	ap = auth.NewDefaultAuthProvider(userList)
+	//defer ap.Close()
+
+	server := apiserver.NewServer(ds, ap, cfg.Server.APIPrefix, !cfg.Server.DisableAuth, jwtPrivateKey, jwtPublicKey, cfg.JWT.Expiration)
 
 	p := &Platform{Config: &cfg, Server: server}
 	return p
@@ -89,7 +91,7 @@ func (p *Platform) Serve() error {
 	// an HTTPS server with the provided X.509 certificates,
 	// otherwise, start an HTTP server.without TLS.
 	if p.Config.TLS.EnableTLS == true {
-		logging.Log.Info("HTTPS / TLS enabled. Using X.509 keypair %v and %v", p.Config.TLS.CertFile, p.Config.TLS.KeyFile)
+		logging.Log.Info("HTTPS/TLS enabled. Using X.509 keypair %v and %v", p.Config.TLS.CertFile, p.Config.TLS.KeyFile)
 		logging.Log.Info("Codewerft Platform server available at https://localhost%v", p.Config.Server.Listen)
 
 		if err := http.ListenAndServeTLS(
@@ -97,12 +99,12 @@ func (p *Platform) Serve() error {
 			p.Config.TLS.CertFile,
 			p.Config.TLS.KeyFile,
 			p.Server); err != nil {
-			logging.Log.Fatal(fmt.Sprintf("Error starting Codewerft Platform server: %v", err))
+			logging.Log.Fatalf("Error starting Codewerft Platform server: %v", err)
 		}
 
 	} else {
 		logging.Log.Warning("***********************************************************************************")
-		logging.Log.Warning("!! HTTPS / TLS DISABLED -- DO NOT RUN THIS SERVER IN A PRODUCTION ENVIRONMENT    !!")
+		logging.Log.Warning("!! HTTPS/TLS DISABLED -- DO NOT RUN THIS SERVER IN A PRODUCTION ENVIRONMENT      !!")
 		logging.Log.Warning("***********************************************************************************")
 
 		logging.Log.Info("Codewerft Platform server available at http://localhost%v", p.Config.Server.Listen)

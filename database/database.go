@@ -40,18 +40,19 @@ func NewDefaultDatastore(hostname string, dbname string, username string, passwo
 	// connectCleaned ommits the password from the string for security reasons
 	var connectCleaned = fmt.Sprintf("%v:%v@%v/%v?charset=utf8", username, "***", hostname, dbname)
 
-	logging.Log.Info("Connecting to MySQL: %v", connectCleaned)
+	logging.Log.Info("Connecting to MySQL server %v", connectCleaned)
 
 	db, err := sql.Open("mysql", connect)
 	if err != nil {
-		panic(err)
+		logging.Log.Fatalf("Connection to MySQL server failed: %v", err)
 	}
 
+	// Ping() asserts that the conenction was established successfully.
 	err = db.Ping()
 	if err != nil {
-		panic(err)
-
+		logging.Log.Fatalf("Connection to MySQL database failed: %v", err)
 	}
+	logging.Log.Info("Connection to MySQL server established.")
 
 	ds := DefaultDatastore{
 		// Session:  *session,

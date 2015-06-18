@@ -19,10 +19,9 @@ import (
 // The DefaultAuthProvider provides an authenticator that checks an auth
 // request agains a static string.
 type DefaultAuthProvider struct {
-	Organization string
-	Name         string
-	UserList     map[string]User
-	Closed       bool
+	Name     string
+	UserList map[string]User
+	Closed   bool
 }
 
 // NewDefaultAuthProvider creates a new StaticAuthProvider object.
@@ -31,7 +30,7 @@ func NewDefaultAuthProvider(userList map[string]User) *DefaultAuthProvider {
 }
 
 // Auth implements the AuthProvider interface.
-func (ap *DefaultAuthProvider) Auth(organization string, username string, password []byte) (u User, e error) {
+func (ap *DefaultAuthProvider) Auth(username string, password []byte) (u User, e error) {
 	if ap.Closed == true {
 		return User{}, errors.New("auth provider closed")
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/codewerft/platform/database"
 	"github.com/codewerft/platform/logging"
 
+	"github.com/codewerft/platform/apiserver/orgs"
 	"github.com/codewerft/platform/apiserver/plans"
 	"github.com/codewerft/platform/apiserver/users"
 
@@ -80,13 +81,15 @@ func AddDefaultResource(r martini.Router, basePath string, authEnabled bool,
 }
 
 // NewServer creates a new Server instance.
-func NewServer(ds database.Datastore, ap auth.Authenticator, authEnabled bool,
+func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, authEnabled bool,
 	privKey []byte, pubKey []byte, expiration int) *martini.Martini {
 
 	// Print a big fat warning if authentication is disabled.
-	logging.Log.Warning("***********************************************************************************")
-	logging.Log.Warning("!! AUTHENTICATION DISABLED -- DO NOT RUN THIS SERVER IN A PRODUCTION ENVIRONMENT !!")
-	logging.Log.Warning("***********************************************************************************")
+	if !authEnabled {
+		logging.Log.Warning("***********************************************************************************")
+		logging.Log.Warning("!! AUTHENTICATION DISABLED -- DO NOT RUN THIS SERVER IN A PRODUCTION ENVIRONMENT !!")
+		logging.Log.Warning("***********************************************************************************")
+	}
 
 	jwtPrivateKey = privKey
 	jwtPublicKey = pubKey
@@ -124,13 +127,10 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, authEnabled bool,
 
 	r := martini.NewRouter()
 
-	r.Get("/version",
+	r.Get(fmt.Sprintf("/%v/version", prefixPath),
 		strict.Accept("application/json", "text/html"),
 		JWTAuth(authEnabled && false),
 		GetVersion)
-
-	// Authentication API
-	//r.Post(fmt.Sprintf("%s/auth", APIPrefix), AuthUser)
 
 	// Auth API
 	r.Post("/auth",
@@ -138,11 +138,15 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, authEnabled bool,
 		binding.Bind(AuthRequest{}),
 		Auth)
 
-	AddDefaultResource(r, "/users", authEnabled,
+	AddDefaultResource(r, fmt.Sprintf("/%v/users", prefixPath), authEnabled,
 		users.Get, users.Get, users.Delete, users.Create,
 		users.CreateUserRequest{}, users.Modify, users.ModifyUserRequest{})
 
-	AddDefaultResource(r, "/plans", authEnabled,
+	AddDefaultResource(r, fmt.Sprintf("/%v/orgs", prefixPath), authEnabled,
+		orgs.Get, orgs.Get, orgs.Delete, orgs.Create,
+		orgs.CreateOrgRequest{}, orgs.Modify, orgs.ModifyOrgRequest{})
+
+	AddDefaultResource(r, fmt.Sprintf("/%v/plans", prefixPath), authEnabled,
 		plans.Get, plans.Get, plans.Delete, plans.Create,
 		plans.CreatePlanRequest{}, plans.Modify, plans.ModifyPlanRequest{})
 
