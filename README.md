@@ -23,6 +23,7 @@ cd ~/workspace/platform
 Get a copy of the platform sources:
 
 ```
+export $GOPATH=`pwd`
 go get github.com/codewerft/platform
 ```
 
