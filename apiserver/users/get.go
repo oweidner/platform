@@ -65,7 +65,7 @@ func DBGetUsers(db *sql.DB, userID int64) (UserList, error) {
 	var rows *sql.Rows
 
 	if userID == -1 {
-		queryString := `SELECT * from user`
+		queryString := `SELECT * from account`
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
 			return nil, err

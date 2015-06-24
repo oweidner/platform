@@ -65,7 +65,7 @@ func Modify(r render.Render, params martini.Params, db database.Datastore, data 
 func DBModifyUser(db *sql.DB, userID int64, data ModifyUserRequest) (UserList, error) {
 
 	stmt, err := db.Prepare(`
-		UPDATE user SET firstname=?, lastname=?, email=?, password=?
+		UPDATE account SET firstname=?, lastname=?, email=?, password=?
         WHERE id=?`)
 	if err != nil {
 		return nil, err

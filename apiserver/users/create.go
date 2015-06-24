@@ -50,7 +50,7 @@ func Create(r render.Render, params martini.Params, db database.Datastore, data 
 func DBCreateUser(db *sql.DB, data CreateUserRequest) (UserList, error) {
 
 	stmt, err := db.Prepare(`
-		INSERT user SET firstname=?, lastname=?, email=?, username=?,
+		INSERT account SET firstname=?, lastname=?, email=?, username=?,
         password=?`)
 	if err != nil {
 		return nil, err
