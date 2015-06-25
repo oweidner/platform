@@ -42,7 +42,7 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 	}
 	// Retrieve the (list of) access logs from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
-	logs, err := DBGetLogs(db.Get(), logID)
+	logs, err := DBGetLogs(db.Get(), logID, -1)
 	if err != nil {
 		responses.GetError(r, err.Error())
 		return

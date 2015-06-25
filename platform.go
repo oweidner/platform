@@ -17,6 +17,8 @@ import (
 
 	"code.google.com/p/gcfg"
 	"github.com/codewerft/platform/apiserver"
+	"github.com/codewerft/platform/apiserver/users"
+
 	"github.com/codewerft/platform/auth"
 	"github.com/codewerft/platform/config"
 	"github.com/codewerft/platform/database"
@@ -52,36 +54,42 @@ func New(configFile *string) *Platform {
 		logging.Log.Fatal(err)
 	}
 
-	userList := make(map[string]auth.User)
-
-	pwdHash1, _ := bcrypt.GenerateFromPassword([]byte(cfg.Server.AdminPassword), 10)
-	userList[cfg.Server.AdminUser] = auth.User{
-		Username: cfg.Server.AdminUser,
-		Password: pwdHash1,
-	}
-
+	// Create the root user credentials from the username and password
+	// values defined in the config file.
+	rootUser := users.User{}
+	pwdHash1, _ := bcrypt.GenerateFromPassword([]byte(cfg.Server.AdminPassword), 0)
+	rootUser = users.User{
+		Firstname: "Root",
+		Lastname:  "Admin User",
+		Username:  cfg.Server.AdminUser,
+		Password:  string(pwdHash1)}
+	// Load the JWT __PRIVATE__ key from the path / filename defined in
+	// the config file.
 	jwtPrivateKey, err1 := ioutil.ReadFile(cfg.JWT.PrivateKey)
 	if err1 != nil {
 		logging.Log.Fatal(fmt.Sprintf("Error reading private key: %v", err1))
 	}
+	// Load the JWT __PUBLIC__ key from the path / filename defined in
+	// the config file.
 	jwtPublicKey, err2 := ioutil.ReadFile(cfg.JWT.PublicKey)
 	if err2 != nil {
 		logging.Log.Fatal(fmt.Sprintf("Error reading public key: %v", err2))
 	}
-
-	// Instantiate / start-up the storage backend
+	// Instantiate the storage database backend with the values defined
+	// in the config file.
 	ds = database.NewDefaultDatastore(cfg.MySQL.Host, cfg.MySQL.Database, cfg.MySQL.Username, cfg.MySQL.Password)
 	defer ds.Close()
+	// Instantiate the authentication backend and inject the root user.
+	ap = auth.NewDefaultAuthProvider(ds, rootUser)
 
-	// Instantiate / start-up the authentication backend
+	// Finally, we start up the Platform API server and inject the storage
+	// and authentication backend instances.
+	server := apiserver.NewServer(ds, ap, cfg.Server.APIPrefix,
+		!cfg.Server.DisableAuth,
+		jwtPrivateKey, jwtPublicKey, cfg.JWT.Expiration)
 
-	ap = auth.NewDefaultAuthProvider(userList, ds)
-	//defer ap.Close()
-
-	server := apiserver.NewServer(ds, ap, cfg.Server.APIPrefix, !cfg.Server.DisableAuth, jwtPrivateKey, jwtPublicKey, cfg.JWT.Expiration)
-
-	p := &Platform{Config: &cfg, Server: server}
-	return p
+	// Return the Platform handle.
+	return &Platform{Config: &cfg, Server: server}
 }
 
 // Serve launches the Platform HTTP(S) server.

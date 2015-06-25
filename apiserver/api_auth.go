@@ -42,7 +42,7 @@ func Auth(u AuthRequest, a auth.Authenticator, r render.Render, req *http.Reques
 	originIP := req.RemoteAddr
 
 	// Authenticate the user with the password provided
-	user, err := a.Auth(originIP, u.Username, []byte(u.Password))
+	err := a.Auth(originIP, u.Username, []byte(u.Password))
 	if err != nil {
 		logging.Log.Error(fmt.Sprintf("[auth] Authentication failed for user %v", u.Username))
 		r.JSON(http.StatusUnauthorized,
@@ -56,9 +56,9 @@ func Auth(u AuthRequest, a auth.Authenticator, r render.Render, req *http.Reques
 
 	// Create a new JWT token
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
-	token.Claims["org"] = user.Organization
-	token.Claims["user"] = user.Username
-	token.Claims["role"] = user.Role
+	token.Claims["org"] = "ORG"       //user.Organization
+	token.Claims["user"] = "USERNAME" //user.Username
+	token.Claims["role"] = "ROLE"     //user.Role
 
 	// Expire in 60 mins
 	token.Claims["exp"] = time.Now().Add(time.Hour * time.Duration(jwtExpiration)).Unix()

@@ -21,7 +21,7 @@ func DBGetOrganizations(db *sql.DB, orgID int64) (OrganizationList, error) {
 	var rows *sql.Rows
 
 	if orgID == -1 {
-		queryString := `SELECT * from organization`
+		queryString := `SELECT * FROM platform_organization`
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
 			return nil, err
@@ -32,7 +32,7 @@ func DBGetOrganizations(db *sql.DB, orgID int64) (OrganizationList, error) {
 		}
 
 	} else {
-		queryString := `SELECT * from organization WHERE id = ?`
+		queryString := `SELECT * FROM platform_organization WHERE id = ?`
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
 			return nil, err

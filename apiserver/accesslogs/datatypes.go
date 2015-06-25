@@ -17,10 +17,10 @@ import (
 // CreateAccessLogEntryRequest is the object that is expected by the
 // CreateAccessLogEntry() function.
 type CreateAccessLogEntryRequest struct {
-	Origin    string `binding:"required"`
-	Level     string `binding:"required"`
-	Event     string `binding:"required"`
-	AccountID int64  `binding:"required"`
+	Origin   string `binding:"required"`
+	Level    string `binding:"required"`
+	Event    string `binding:"required"`
+	Username string `binding:"required"`
 }
 
 // AccessLog represents an access log object as it exists
@@ -31,7 +31,7 @@ type AccessLog struct {
 	Origin    string
 	Level     string
 	Event     string
-	AccountID int64
+	Username  string
 }
 
 // AccessLogList represents a list of AccessLog objects.

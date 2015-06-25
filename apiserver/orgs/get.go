@@ -65,7 +65,7 @@ func DBGetOrgs(db *sql.DB, orgID int64) (OrgList, error) {
 	var rows *sql.Rows
 
 	if orgID == -1 {
-		queryString := `SELECT * from organization`
+		queryString := `SELECT * FROM platform_organization`
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
 			return nil, err
@@ -76,7 +76,7 @@ func DBGetOrgs(db *sql.DB, orgID int64) (OrgList, error) {
 		}
 
 	} else {
-		queryString := `SELECT * from organization WHERE id = ?`
+		queryString := `SELECT * FROM platform_organization WHERE id = ?`
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
 			return nil, err

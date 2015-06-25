@@ -45,7 +45,7 @@ func Create(r render.Render, params martini.Params, db database.Datastore, data 
 //
 func DBCreatePlan(db *sql.DB, data CreatePlanRequest) (PlanList, error) {
 
-	stmt, err := db.Prepare(`INSERT plan SET name=?`)
+	stmt, err := db.Prepare(`INSERT platform_plan SET name=?`)
 	if err != nil {
 		return nil, err
 	}

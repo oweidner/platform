@@ -10,25 +10,48 @@
 
 package accesslogs
 
-import (
-	"database/sql"
-	"fmt"
-)
+import "database/sql"
+
+// DBWriteLoginError is a convenience function that writes a new login error
+// entry to the database.
+func DBWriteLoginError(db *sql.DB, origin string, username string) error {
+	// Create the log entry object
+	entry := CreateAccessLogEntryRequest{
+		Origin:   origin,
+		Level:    "ERROR",
+		Event:    "Authentication failed",
+		Username: username}
+	// Write the entry to the database
+	_, err := DBCreateAccessLogEntry(db, entry)
+	return err
+}
+
+// DBWriteLoginOK is a convenience function that writes a new login info
+// entry to the database.
+func DBWriteLoginOK(db *sql.DB, origin string, username string) error {
+	// Create the log entry object
+	entry := CreateAccessLogEntryRequest{
+		Origin:   origin,
+		Level:    "INFO",
+		Event:    "Successfully authenticated.",
+		Username: username}
+	// Write the entry to the database
+	_, err := DBCreateAccessLogEntry(db, entry)
+	return err
+}
 
 // DBCreateAccessLogEntry creates a new User object in the database.
 //
 func DBCreateAccessLogEntry(db *sql.DB, data CreateAccessLogEntryRequest) (AccessLogList, error) {
 
-	fmt.Printf("SDASDASDS")
-
 	stmt, err := db.Prepare(`
-		INSERT access_log SET timestamp=NOW(), origin=?, level=?, event=?, account_id=?`)
+		INSERT platform_access_log SET timestamp=NOW(), origin=?, level=?, event=?, username=?`)
 	if err != nil {
 		return nil, err
 	}
 
 	res, err := stmt.Exec(
-		data.Origin, data.Level, data.Event, data.AccountID)
+		data.Origin, data.Level, data.Event, data.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +59,7 @@ func DBCreateAccessLogEntry(db *sql.DB, data CreateAccessLogEntryRequest) (Acces
 	// The id of the newly generated log entry
 	logID, _ := res.LastInsertId()
 	// Retrieve the newly created object from the database and return it
-	logs, err := DBGetLogs(db, logID)
+	logs, err := DBGetLogs(db, logID, -1)
 	if err != nil {
 		return nil, err
 	}
@@ -45,33 +68,36 @@ func DBCreateAccessLogEntry(db *sql.DB, data CreateAccessLogEntryRequest) (Acces
 }
 
 // DBGetLogs returns a AccessLog object from the database.
-func DBGetLogs(db *sql.DB, logID int64) (AccessLogList, error) {
+func DBGetLogs(db *sql.DB, logID int64, accountID int64) (AccessLogList, error) {
 
 	// If no logID is provided (userID is -1), all users are retreived. If
 	// a logID is given, a specific log entry is retreived.
 	var rows *sql.Rows
 
-	if logID == -1 {
-		queryString := `SELECT * from access_log`
-		stmt, err := db.Prepare(queryString)
-		if err != nil {
-			return nil, err
-		}
-		rows, err = stmt.Query()
-		if err != nil {
-			return nil, err
-		}
+	queryString := `SELECT * FROM platform_access_log WHERE id = ?`
+	// if logID != -1 {
+	// 	// If a logID is specified, we only fetch a specific log entry.
+	// 	queryString += fmt.Sprintf(`WHERE id = ?`, logID)
+	// }
+	// 	if accountID != -1 {
+	// 		queryString += " AND "
+	// 	}
+	// }
+	// if accountID != -1 {
+	// 	// if accountID is specified, we fetch only account-specific logs
+	// 	if logID == -1 {
+	// 		queryString += " WHERE "
+	// 	}
+	// 	queryString += fmt.Sprintf("account_id = %v", accountID)
+	// }
 
-	} else {
-		queryString := `SELECT * from access_log WHERE id = ?`
-		stmt, err := db.Prepare(queryString)
-		if err != nil {
-			return nil, err
-		}
-		rows, err = stmt.Query(logID)
-		if err != nil {
-			return nil, err
-		}
+	stmt, err := db.Prepare(queryString)
+	if err != nil {
+		return nil, err
+	}
+	rows, err = stmt.Query(logID)
+	if err != nil {
+		return nil, err
 	}
 
 	// Read the rows into the target struct
@@ -82,7 +108,7 @@ func DBGetLogs(db *sql.DB, logID int64) (AccessLogList, error) {
 		var obj AccessLog
 		err := rows.Scan(
 			&obj.ID, &obj.Timestamp, &obj.Origin, &obj.Level, &obj.Event,
-			&obj.AccountID)
+			&obj.Username)
 
 		// Forward the error
 		if err != nil {

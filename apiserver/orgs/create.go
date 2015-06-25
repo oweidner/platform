@@ -45,7 +45,7 @@ func Create(r render.Render, params martini.Params, db database.Datastore, data 
 //
 func DBCreateOrg(db *sql.DB, data CreateOrgRequest) (OrgList, error) {
 
-	stmt, err := db.Prepare(`INSERT organization SET name=?`)
+	stmt, err := db.Prepare(`INSERT platform_organization SET name=?`)
 	if err != nil {
 		return nil, err
 	}

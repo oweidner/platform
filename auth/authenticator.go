@@ -10,24 +10,7 @@
 
 package auth
 
-type Organization struct {
-	Name string
-}
-
-// The User object represents a user.
-type User struct {
-	Username     string
-	Password     []byte
-	Organization Organization
-	Firstname    string
-	Lastname     string
-	Email        string
-	Role         string
-	Language     string
-}
-
 // Authenticator defines the interface for all authentication providers.
 type Authenticator interface {
-	Auth(origin string, username string, password []byte) (User, error)
-	Close()
+	Auth(origin string, username string, password []byte) error
 }

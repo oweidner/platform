@@ -13,6 +13,8 @@ package users
 import (
 	"database/sql"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/codewerft/platform/apiserver/responses"
 
 	"github.com/codewerft/platform/database"
@@ -49,16 +51,22 @@ func Create(r render.Render, params martini.Params, db database.Datastore, data 
 //
 func DBCreateUser(db *sql.DB, data CreateUserRequest) (UserList, error) {
 
+	// Create a bcrypt hash from the password as we don't want to store
+	// plain-text passwords in the database
+	pwdHash, err := bcrypt.GenerateFromPassword([]byte(data.Password), 0)
+	if err != nil {
+		// TODO: handle properly
+	}
+
 	stmt, err := db.Prepare(`
-		INSERT account SET firstname=?, lastname=?, email=?, username=?,
+		INSERT platform_account SET firstname=?, lastname=?, email=?, username=?,
         password=?`)
 	if err != nil {
 		return nil, err
 	}
 
 	res, err := stmt.Exec(
-		data.Firstname, data.Lastname, data.Email, data.Username,
-		data.Password)
+		data.Firstname, data.Lastname, data.Email, data.Username, pwdHash)
 	if err != nil {
 		return nil, err
 	}

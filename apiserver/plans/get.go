@@ -65,7 +65,7 @@ func DBGetPlans(db *sql.DB, planID int64) (PlanList, error) {
 	var rows *sql.Rows
 
 	if planID == -1 {
-		queryString := `SELECT * from plan`
+		queryString := `SELECT * FROM platform_plan`
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
 			return nil, err
@@ -76,7 +76,7 @@ func DBGetPlans(db *sql.DB, planID int64) (PlanList, error) {
 		}
 
 	} else {
-		queryString := `SELECT * from plan WHERE id = ?`
+		queryString := `SELECT * FROM platform_plan WHERE id = ?`
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
 			return nil, err
