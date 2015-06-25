@@ -57,7 +57,7 @@ func Modify(r render.Render, params martini.Params, db database.Datastore, data 
 	responses.ModifyOK(r, modifiedPlan)
 }
 
-// DBModifyPlan modifies a User object in the database.
+// DBModifyPlan modifies a Account object in the database.
 //
 func DBModifyPlan(db *sql.DB, planID int64, data ModifyPlanRequest) (PlanList, error) {
 
@@ -73,10 +73,10 @@ func DBModifyPlan(db *sql.DB, planID int64, data ModifyPlanRequest) (PlanList, e
 	}
 
 	// Retrieve the modified object from the database and return it
-	users, err := DBGetPlans(db, planID)
+	account, err := DBGetPlans(db, planID)
 	if err != nil {
 		return nil, err
 	}
 
-	return users, nil
+	return account, nil
 }

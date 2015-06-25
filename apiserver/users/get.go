@@ -8,7 +8,7 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package users
+package account
 
 import (
 	"database/sql"
@@ -23,48 +23,48 @@ import (
 	"github.com/go-martini/martini"
 )
 
-// Get retrieves one or more user objects from the database and
+// Get retrieves one or more account objects from the database and
 // sends them back to caller.
 //
 func Get(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
 
-	// userID is either -1 if no user ID was provided or > 0 otherwise.
-	var userID int64 = -1
+	// accountID is either -1 if no account ID was provided or > 0 otherwise.
+	var accountID int64 = -1
 
-	// Convert the userid string to an integer. In case the conversion
+	// Convert the accountid string to an integer. In case the conversion
 	// fails, an error response is sent back to the caller.
 	if params["p1"] != "" {
 		var err error
-		userID, err = strconv.ParseInt(params["p1"], 10, 64)
+		accountID, err = strconv.ParseInt(params["p1"], 10, 64)
 		if err != nil {
-			responses.GetError(r, fmt.Sprintf("Invalid User ID: %v", userID))
+			responses.GetError(r, fmt.Sprintf("Invalid Account ID: %v", accountID))
 			return
 		}
 	}
-	// Retrieve the (list of) users from the database. In case the
+	// Retrieve the (list of) account from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
-	users, err := DBGetUsers(db.Get(), userID)
+	account, err := DBGetAccounts(db.Get(), accountID)
 	if err != nil {
 		responses.GetError(r, err.Error())
 		return
 	}
 
-	// Return the list of users or a 404 if the user wasn't found.
-	if userID != -1 && len(users) < 1 {
+	// Return the list of account or a 404 if the account wasn't found.
+	if accountID != -1 && len(account) < 1 {
 		responses.GetNotFound(r)
 	} else {
-		responses.GetOK(r, users)
+		responses.GetOK(r, account)
 	}
 }
 
-// DBGetUsers returns a User object from the database.
-func DBGetUsers(db *sql.DB, userID int64) (UserList, error) {
+// DBGetAccounts returns a Account object from the database.
+func DBGetAccounts(db *sql.DB, accountID int64) (AccountList, error) {
 
-	// If no userID is provided (userID is -1), all users are retreived. If
-	// a userID is given, a specific user is retreived.
+	// If no accountID is provided (accountID is -1), all account are retreived. If
+	// a accountID is given, a specific account is retreived.
 	var rows *sql.Rows
 
-	if userID == -1 {
+	if accountID == -1 {
 		queryString := `SELECT * FROM platform_account`
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
@@ -81,18 +81,18 @@ func DBGetUsers(db *sql.DB, userID int64) (UserList, error) {
 		if err != nil {
 			return nil, err
 		}
-		rows, err = stmt.Query(userID)
+		rows, err = stmt.Query(accountID)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// Read the rows into the target struct
-	var objs UserList
+	var objs AccountList
 
 	for rows.Next() {
 
-		var obj User
+		var obj Account
 		err := rows.Scan(
 			&obj.ID, &obj.Firstname, &obj.Lastname, &obj.Email,
 			&obj.Username, &obj.Password)

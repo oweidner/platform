@@ -8,7 +8,7 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package users
+package account
 
 import (
 	"database/sql"
@@ -22,47 +22,47 @@ import (
 	"github.com/go-martini/martini"
 )
 
-// ModifyUserRequest is the object that is expected by the
+// ModifyAccountRequest is the object that is expected by the
 // Modify() function.
-type ModifyUserRequest struct {
+type ModifyAccountRequest struct {
 	Firstname string `binding:"required"`
 	Lastname  string `binding:"required"`
 	Email     string `binding:"required"`
 	Password  string `binding:"required"`
 }
 
-// Modify modifies a user object in the database.
+// Modify modifies a account object in the database.
 //
-func Modify(r render.Render, params martini.Params, db database.Datastore, data ModifyUserRequest) {
+func Modify(r render.Render, params martini.Params, db database.Datastore, data ModifyAccountRequest) {
 
-	// userID is either -1 if no user ID was provided or > 0 otherwise.
-	var userID int64 = -1
+	// accountID is either -1 if no account ID was provided or > 0 otherwise.
+	var accountID int64 = -1
 
-	// Convert the userid string to an integer. In case the conversion
+	// Convert the accountid string to an integer. In case the conversion
 	// fails, an error response is sent back to the caller.
 	if params["p1"] != "" {
 		var err error
-		userID, err = strconv.ParseInt(params["p1"], 10, 64)
+		accountID, err = strconv.ParseInt(params["p1"], 10, 64)
 		if err != nil {
-			responses.ModifyError(r, fmt.Sprintf("Invalid User ID: %v", userID))
+			responses.ModifyError(r, fmt.Sprintf("Invalid Account ID: %v", accountID))
 			return
 		}
 	}
-	// Retrieve the (list of) users from the database. In case the
+	// Retrieve the (list of) account from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
-	modifiedUser, err := DBModifyUser(db.Get(), userID, data)
+	modifiedAccount, err := DBModifyAccount(db.Get(), accountID, data)
 	if err != nil {
 		responses.GetError(r, err.Error())
 		return
 	}
 
-	// Return the user.
-	responses.ModifyOK(r, modifiedUser)
+	// Return the account.
+	responses.ModifyOK(r, modifiedAccount)
 }
 
-// DBModifyUser modifies a User object in the database.
+// DBModifyAccount modifies a Account object in the database.
 //
-func DBModifyUser(db *sql.DB, userID int64, data ModifyUserRequest) (UserList, error) {
+func DBModifyAccount(db *sql.DB, accountID int64, data ModifyAccountRequest) (AccountList, error) {
 
 	stmt, err := db.Prepare(`
 		UPDATE account SET firstname=?, lastname=?, email=?, password=?
@@ -72,16 +72,16 @@ func DBModifyUser(db *sql.DB, userID int64, data ModifyUserRequest) (UserList, e
 	}
 
 	_, err = stmt.Exec(
-		data.Firstname, data.Lastname, data.Email, data.Password, userID)
+		data.Firstname, data.Lastname, data.Email, data.Password, accountID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Retrieve the modified object from the database and return it
-	users, err := DBGetUsers(db, userID)
+	account, err := DBGetAccounts(db, accountID)
 	if err != nil {
 		return nil, err
 	}
 
-	return users, nil
+	return account, nil
 }

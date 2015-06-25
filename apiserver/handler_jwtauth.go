@@ -18,7 +18,7 @@ import (
 	"github.com/go-martini/martini"
 )
 
-type JWTAuthUser struct {
+type JWTAuthAccount struct {
 	Username string `json:"username" binding:"required"`
 	Role     string `json:"role" binding:"required"`
 }
@@ -61,7 +61,7 @@ func JWTAuth(base interface{}) martini.Handler {
 					Message: "Invalid Token Data (user)"})
 				return
 			}
-			context.Map(JWTAuthUser{Username: user.(string), Role: role.(string)})
+			context.Map(JWTAuthAccount{Username: user.(string), Role: role.(string)})
 
 		} else {
 			r.JSON(http.StatusUnauthorized, ErrorResponse{

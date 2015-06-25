@@ -17,7 +17,7 @@ import (
 
 	"code.google.com/p/gcfg"
 	"github.com/codewerft/platform/apiserver"
-	"github.com/codewerft/platform/apiserver/users"
+	"github.com/codewerft/platform/apiserver/account"
 
 	"github.com/codewerft/platform/auth"
 	"github.com/codewerft/platform/config"
@@ -54,14 +54,14 @@ func New(configFile *string) *Platform {
 		logging.Log.Fatal(err)
 	}
 
-	// Create the root user credentials from the username and password
+	// Create the root account credentials from the accountname and password
 	// values defined in the config file.
-	rootUser := users.User{}
+	rootAccount := account.Account{}
 	pwdHash1, _ := bcrypt.GenerateFromPassword([]byte(cfg.Server.AdminPassword), 0)
-	rootUser = users.User{
+	rootAccount = account.Account{
 		Firstname: "Root",
-		Lastname:  "Admin User",
-		Username:  cfg.Server.AdminUser,
+		Lastname:  "Admin Account",
+		Username:  cfg.Server.AdminAccount,
 		Password:  string(pwdHash1)}
 	// Load the JWT __PRIVATE__ key from the path / filename defined in
 	// the config file.
@@ -79,8 +79,8 @@ func New(configFile *string) *Platform {
 	// in the config file.
 	ds = database.NewDefaultDatastore(cfg.MySQL.Host, cfg.MySQL.Database, cfg.MySQL.Username, cfg.MySQL.Password)
 	defer ds.Close()
-	// Instantiate the authentication backend and inject the root user.
-	ap = auth.NewDefaultAuthProvider(ds, rootUser)
+	// Instantiate the authentication backend and inject the root account.
+	ap = auth.NewDefaultAuthProvider(ds, rootAccount)
 
 	// Finally, we start up the Platform API server and inject the storage
 	// and authentication backend instances.

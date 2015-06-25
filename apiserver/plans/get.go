@@ -49,7 +49,7 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 		return
 	}
 
-	// Return the list of plans or a 404 if the user wasn't found.
+	// Return the list of plans or a 404 if the account wasn't found.
 	if planID != -1 && len(plans) < 1 {
 		responses.GetNotFound(r)
 	} else {
@@ -60,8 +60,8 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 // DBGetPlans returns a Plan object from the database.
 func DBGetPlans(db *sql.DB, planID int64) (PlanList, error) {
 
-	// If no userID is provided (userID is -1), all users are retreived. If
-	// a planID is given, a specific user is retreived.
+	// If no accountID is provided (accountID is -1), all account are retreived. If
+	// a planID is given, a specific account is retreived.
 	var rows *sql.Rows
 
 	if planID == -1 {

@@ -19,7 +19,7 @@ import (
 
 	"github.com/codewerft/platform/apiserver/orgs"
 	"github.com/codewerft/platform/apiserver/plans"
-	"github.com/codewerft/platform/apiserver/users"
+	"github.com/codewerft/platform/apiserver/account"
 
 	"github.com/codewerft/platform/apiserver/accesslogs"
 
@@ -140,9 +140,9 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 		binding.Bind(AuthRequest{}),
 		Auth)
 
-	AddDefaultResource(r, fmt.Sprintf("/%v/users", prefixPath), authEnabled,
-		users.Get, users.Get, users.Delete, users.Create,
-		users.CreateUserRequest{}, users.Modify, users.ModifyUserRequest{})
+	AddDefaultResource(r, fmt.Sprintf("/%v/account", prefixPath), authEnabled,
+		account.Get, account.Get, account.Delete, account.Create,
+		account.CreateAccountRequest{}, account.Modify, account.ModifyAccountRequest{})
 
 	r.Get(fmt.Sprintf("/%v/accesslogs", prefixPath),
 		strict.Accept("application/json", "text/html"),
@@ -171,22 +171,22 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 	// r.Get("/plans/:pid",
 	// 	strict.Accept("application/json", "text/html"),
 	// 	JWTAuth(authEnabled),
-	// 	users.GetPlans)
+	// 	account.GetPlans)
 	//
 	// /* Create a new plan.
 	//  */
 	// r.Put("/plans/:pid",
 	// 	strict.Accept("application/json", "text/html"),
-	// 	binding.Bind(users.CreateUserRequest{}),
+	// 	binding.Bind(account.CreateAccountRequest{}),
 	// 	JWTAuth(authEnabled),
-	// 	users.CreatePlan)
+	// 	account.CreatePlan)
 	//
 	// /* Delete a plan.
 	//  */
 	// r.Delete("/plans/:pid",
 	// 	strict.Accept("application/json", "text/html"),
 	// 	JWTAuth(authEnabled),
-	// 	users.DeletePlan)
+	// 	account.DeletePlan)
 
 	//r.NotFound(strict.MethodNotAllowed, strict.NotFound)
 	m.Action(r.Handle)

@@ -34,11 +34,11 @@ type DefaultDatastore struct {
 
 // NewDefaultDatastore creates a new SQLiteDatastore object.
 //
-func NewDefaultDatastore(hostname string, dbname string, username string, password string) *DefaultDatastore {
+func NewDefaultDatastore(hostname string, dbname string, accountname string, password string) *DefaultDatastore {
 
-	var connect = fmt.Sprintf("%v:%v@%v/%v?charset=utf8&parseTime=true", username, password, hostname, dbname)
+	var connect = fmt.Sprintf("%v:%v@%v/%v?charset=utf8&parseTime=true", accountname, password, hostname, dbname)
 	// connectCleaned ommits the password from the string for security reasons
-	var connectCleaned = fmt.Sprintf("%v:%v@%v/%v?charset=utf8&parseTime=true", username, "***", hostname, dbname)
+	var connectCleaned = fmt.Sprintf("%v:%v@%v/%v?charset=utf8&parseTime=true", accountname, "***", hostname, dbname)
 
 	logging.Log.Info("Connecting to MySQL server %v", connectCleaned)
 

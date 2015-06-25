@@ -41,24 +41,24 @@ func Auth(u AuthRequest, a auth.Authenticator, r render.Render, req *http.Reques
 	// Get the caller's IP address
 	originIP := req.RemoteAddr
 
-	// Authenticate the user with the password provided
+	// Authenticate the account with the password provided
 	err := a.Auth(originIP, u.Username, []byte(u.Password))
 	if err != nil {
-		logging.Log.Error(fmt.Sprintf("[auth] Authentication failed for user %v", u.Username))
+		logging.Log.Error(fmt.Sprintf("[auth] Authentication failed for account %v", u.Username))
 		r.JSON(http.StatusUnauthorized,
 			ErrorResponse{
 				Code:    http.StatusUnauthorized,
 				Message: "Authorization Failed"})
 		return
 	} else {
-		logging.Log.Info(fmt.Sprintf("[auth] Authentication granted to user %v", u.Username))
+		logging.Log.Info(fmt.Sprintf("[auth] Authentication granted to account %v", u.Username))
 	}
 
 	// Create a new JWT token
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
-	token.Claims["org"] = "ORG"       //user.Organization
-	token.Claims["user"] = "USERNAME" //user.Username
-	token.Claims["role"] = "ROLE"     //user.Role
+	token.Claims["org"] = "ORG"       //account.Organization
+	token.Claims["user"] = "USERNAME" //account.Username
+	token.Claims["role"] = "ROLE"     //account.Role
 
 	// Expire in 60 mins
 	token.Claims["exp"] = time.Now().Add(time.Hour * time.Duration(jwtExpiration)).Unix()

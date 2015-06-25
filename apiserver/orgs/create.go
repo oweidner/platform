@@ -41,7 +41,7 @@ func Create(r render.Render, params martini.Params, db database.Datastore, data 
 	responses.CreateOK(r, newOrg)
 }
 
-// DBCreateOrg creates a new User object in the database.
+// DBCreateOrg creates a new Account object in the database.
 //
 func DBCreateOrg(db *sql.DB, data CreateOrgRequest) (OrgList, error) {
 

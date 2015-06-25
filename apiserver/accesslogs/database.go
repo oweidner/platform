@@ -10,42 +10,52 @@
 
 package accesslogs
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+	"log"
+)
 
 // DBWriteLoginError is a convenience function that writes a new login error
 // entry to the database.
-func DBWriteLoginError(db *sql.DB, origin string, username string) error {
+func DBWriteLoginError(db *sql.DB, origin string, accountname string, details string) {
 	// Create the log entry object
 	entry := CreateAccessLogEntryRequest{
 		Origin:   origin,
 		Level:    "ERROR",
-		Event:    "Authentication failed",
-		Username: username}
+		Event:    fmt.Sprintf("Authentication failed: %v", details),
+		Username: accountname}
 	// Write the entry to the database
 	_, err := DBCreateAccessLogEntry(db, entry)
-	return err
+	if err != nil {
+		// TODO: handle SQL error on this level.
+		log.Printf("%v", err)
+	}
 }
 
 // DBWriteLoginOK is a convenience function that writes a new login info
 // entry to the database.
-func DBWriteLoginOK(db *sql.DB, origin string, username string) error {
+func DBWriteLoginOK(db *sql.DB, origin string, accountname string) {
 	// Create the log entry object
 	entry := CreateAccessLogEntryRequest{
 		Origin:   origin,
 		Level:    "INFO",
-		Event:    "Successfully authenticated.",
-		Username: username}
+		Event:    "Authentication successful.",
+		Username: accountname}
 	// Write the entry to the database
 	_, err := DBCreateAccessLogEntry(db, entry)
-	return err
+	if err != nil {
+		// TODO: handle SQL error on this level.
+		log.Printf("%v", err)
+	}
 }
 
-// DBCreateAccessLogEntry creates a new User object in the database.
+// DBCreateAccessLogEntry creates a new Account object in the database.
 //
 func DBCreateAccessLogEntry(db *sql.DB, data CreateAccessLogEntryRequest) (AccessLogList, error) {
 
 	stmt, err := db.Prepare(`
-		INSERT platform_access_log SET timestamp=NOW(), origin=?, level=?, event=?, username=?`)
+		INSERT platform_access_log SET timestamp=NOW(), origin=?, level=?, event=?, accountname=?`)
 	if err != nil {
 		return nil, err
 	}
@@ -63,14 +73,14 @@ func DBCreateAccessLogEntry(db *sql.DB, data CreateAccessLogEntryRequest) (Acces
 	if err != nil {
 		return nil, err
 	}
-	// Return the user object.
+	// Return the account object.
 	return logs, nil
 }
 
 // DBGetLogs returns a AccessLog object from the database.
 func DBGetLogs(db *sql.DB, logID int64, accountID int64) (AccessLogList, error) {
 
-	// If no logID is provided (userID is -1), all users are retreived. If
+	// If no logID is provided (accountID is -1), all account are retreived. If
 	// a logID is given, a specific log entry is retreived.
 	var rows *sql.Rows
 

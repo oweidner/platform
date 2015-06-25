@@ -57,7 +57,7 @@ func Modify(r render.Render, params martini.Params, db database.Datastore, data 
 	responses.ModifyOK(r, modifiedOrg)
 }
 
-// DBModifyOrg modifies a User object in the database.
+// DBModifyOrg modifies a Account object in the database.
 //
 func DBModifyOrg(db *sql.DB, orgID int64, data ModifyOrgRequest) (OrgList, error) {
 
@@ -73,10 +73,10 @@ func DBModifyOrg(db *sql.DB, orgID int64, data ModifyOrgRequest) (OrgList, error
 	}
 
 	// Retrieve the modified object from the database and return it
-	users, err := DBGetOrgs(db, orgID)
+	account, err := DBGetOrgs(db, orgID)
 	if err != nil {
 		return nil, err
 	}
 
-	return users, nil
+	return account, nil
 }

@@ -49,7 +49,7 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 		return
 	}
 
-	// Return the list of organizations or a 404 if the user wasn't found.
+	// Return the list of organizations or a 404 if the account wasn't found.
 	if orgID != -1 && len(orgs) < 1 {
 		responses.GetNotFound(r)
 	} else {
@@ -60,8 +60,8 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 // DBGetOrgs returns an organization object from the database.
 func DBGetOrgs(db *sql.DB, orgID int64) (OrgList, error) {
 
-	// If no orgID is provided (orgID is -1), all users are retreived. If
-	// a orgID is given, a specific user is retreived.
+	// If no orgID is provided (orgID is -1), all account are retreived. If
+	// a orgID is given, a specific account is retreived.
 	var rows *sql.Rows
 
 	if orgID == -1 {

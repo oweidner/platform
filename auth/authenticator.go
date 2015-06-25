@@ -12,5 +12,5 @@ package auth
 
 // Authenticator defines the interface for all authentication providers.
 type Authenticator interface {
-	Auth(origin string, username string, password []byte) error
+	Auth(origin string, accountname string, password []byte) error
 }

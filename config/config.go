@@ -19,7 +19,7 @@ type Config struct {
 		Listen        string `gcfg:"listen"`
 		APIPrefix     string
 		DisableAuth   bool   `gcfg:"disableauth"`
-		AdminUser     string `gcfg:"adminuser"`
+		AdminAccount  string `gcfg:"adminaccount"`
 		AdminPassword string `gcfg:"adminpassword"`
 	}
 	TLS struct {
@@ -67,8 +67,8 @@ func CheckConfig(config *Config, filename string) error {
 	}
 
 	// Return an error if no Server.StorageBackend is defined.
-	if config.Server.AdminUser == "" {
-		return fmt.Errorf("%v: Configuration doesn't define mandatory Server.AdminUser", filename)
+	if config.Server.AdminAccount == "" {
+		return fmt.Errorf("%v: Configuration doesn't define mandatory Server.AdminAccount", filename)
 	}
 	// Return an error if no Server.StorageBackend is defined.
 	if config.Server.AdminPassword == "" {

@@ -21,9 +21,9 @@ import (
 // conversion was successful, the int64 number is returned. If not,
 // an error response is sent back to the caller.
 func StringToInt64(r render.Render, number string) int64 {
-	userID, err := strconv.ParseInt(number, 10, 64)
+	accountID, err := strconv.ParseInt(number, 10, 64)
 	if err != nil {
-		responses.GetError(r, "Invalid UserID.")
+		responses.GetError(r, "Invalid AccountID.")
 	}
-	return userID
+	return accountID
 }

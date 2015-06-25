@@ -26,7 +26,7 @@ type CreatePlanRequest struct {
 	Name string `binding:"required"`
 }
 
-// Create creates a new User object in
+// Create creates a new Account object in
 // the database.
 func Create(r render.Render, params martini.Params, db database.Datastore, data CreatePlanRequest) {
 
@@ -37,11 +37,11 @@ func Create(r render.Render, params martini.Params, db database.Datastore, data 
 		responses.CreateError(r, err.Error())
 		return
 	}
-	// Return the user.
+	// Return the account.
 	responses.CreateOK(r, newPlan)
 }
 
-// DBCreatePlan creates a new User object in the database.
+// DBCreatePlan creates a new Account object in the database.
 //
 func DBCreatePlan(db *sql.DB, data CreatePlanRequest) (PlanList, error) {
 
@@ -62,6 +62,6 @@ func DBCreatePlan(db *sql.DB, data CreatePlanRequest) (PlanList, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Return the user object.
+	// Return the account object.
 	return plans, nil
 }

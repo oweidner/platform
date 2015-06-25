@@ -12,12 +12,12 @@ package organizations
 
 import "database/sql"
 
-// DBGetOrganizations returns a list of User object from the database.
+// DBGetOrganizations returns a list of Account object from the database.
 //
 func DBGetOrganizations(db *sql.DB, orgID int64) (OrganizationList, error) {
 
-	// If no userID is provided (userID is -1), all users are retreived. If
-	// a userID is given, a specific user is retreived.
+	// If no accountID is provided (accountID is -1), all account are retreived. If
+	// a accountID is given, a specific account is retreived.
 	var rows *sql.Rows
 
 	if orgID == -1 {

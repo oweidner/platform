@@ -41,7 +41,7 @@ func Delete(req *http.Request, params martini.Params, r render.Render, db databa
 		}
 	}
 	// Use the Generic 'delete' function from the database helper package to
-	// delete the user.
+	// delete the account.
 	// err := database.GenericDelete(db.Get(), "DELETE FROM plan WHERE id = ?", planID)
 	// if err != nil {
 	// 	responses.DeleteError(r, err.Error())

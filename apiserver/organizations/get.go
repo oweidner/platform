@@ -48,6 +48,6 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 		return
 	}
 
-	// Return the user.
+	// Return the account.
 	responses.GetOK(r, orgs)
 }

@@ -158,12 +158,12 @@ func (s *DataStoreTests) TestSurveyResults(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(len(results), Equals, 1)
 
-	// if we add another result, under the same userid, we should
+	// if we add another result, under the same accountid, we should
 	// end up with an error
 	err = s.Store.AddSurveyResult(&r1)
 	c.Assert(err, NotNil)
 
-	// changing the username should allow us to add the result
+	// changing the accountname should allow us to add the result
 	r1.FBNR = "dreadlock_rasta"
 	err = s.Store.AddSurveyResult(&r1)
 
