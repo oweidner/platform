@@ -14,7 +14,7 @@ import "database/sql"
 
 // DBGetOrganizations returns a list of User object from the database.
 //
-func DBGetOrganizations(db *sql.DB, orgID int64) ([]Organization, error) {
+func DBGetOrganizations(db *sql.DB, orgID int64) (OrganizationList, error) {
 
 	// If no userID is provided (userID is -1), all users are retreived. If
 	// a userID is given, a specific user is retreived.
@@ -44,7 +44,7 @@ func DBGetOrganizations(db *sql.DB, orgID int64) ([]Organization, error) {
 	}
 
 	// Read the rows into the target struct
-	var objs []Organization
+	var objs OrganizationList
 	//
 	rows, err := stmt.Query()
 	for rows.Next() {

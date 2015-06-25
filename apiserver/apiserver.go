@@ -21,6 +21,8 @@ import (
 	"github.com/codewerft/platform/apiserver/plans"
 	"github.com/codewerft/platform/apiserver/users"
 
+	"github.com/codewerft/platform/apiserver/accesslogs"
+
 	"github.com/attilaolah/strict"
 	"github.com/gavv/martini-render"
 	"github.com/go-martini/martini"
@@ -141,6 +143,11 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 	AddDefaultResource(r, fmt.Sprintf("/%v/users", prefixPath), authEnabled,
 		users.Get, users.Get, users.Delete, users.Create,
 		users.CreateUserRequest{}, users.Modify, users.ModifyUserRequest{})
+
+	r.Get(fmt.Sprintf("/%v/accesslogs", prefixPath),
+		strict.Accept("application/json", "text/html"),
+		JWTAuth(authEnabled),
+		accesslogs.Get)
 
 	AddDefaultResource(r, fmt.Sprintf("/%v/orgs", prefixPath), authEnabled,
 		orgs.Get, orgs.Get, orgs.Delete, orgs.Create,

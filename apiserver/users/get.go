@@ -76,7 +76,7 @@ func DBGetUsers(db *sql.DB, userID int64) (UserList, error) {
 		}
 
 	} else {
-		queryString := `SELECT * from user WHERE id = ?`
+		queryString := `SELECT * from account WHERE id = ?`
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
 			return nil, err
@@ -88,7 +88,7 @@ func DBGetUsers(db *sql.DB, userID int64) (UserList, error) {
 	}
 
 	// Read the rows into the target struct
-	var objs []User
+	var objs UserList
 
 	for rows.Next() {
 

@@ -13,6 +13,9 @@ package auth
 import (
 	"errors"
 
+	"github.com/codewerft/platform/apiserver/accesslogs"
+	"github.com/codewerft/platform/database"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -20,17 +23,18 @@ import (
 // request agains a static string.
 type DefaultAuthProvider struct {
 	Name     string
+	Database database.Datastore
 	UserList map[string]User
 	Closed   bool
 }
 
 // NewDefaultAuthProvider creates a new StaticAuthProvider object.
-func NewDefaultAuthProvider(userList map[string]User) *DefaultAuthProvider {
-	return &DefaultAuthProvider{Name: "StaticAuthProvider", UserList: userList, Closed: false}
+func NewDefaultAuthProvider(userList map[string]User, ds database.Datastore) *DefaultAuthProvider {
+	return &DefaultAuthProvider{Name: "StaticAuthProvider", UserList: userList, Database: ds, Closed: false}
 }
 
 // Auth implements the AuthProvider interface.
-func (ap *DefaultAuthProvider) Auth(username string, password []byte) (u User, e error) {
+func (ap *DefaultAuthProvider) Auth(origin string, username string, password []byte) (u User, e error) {
 	if ap.Closed == true {
 		return User{}, errors.New("auth provider closed")
 	}
@@ -38,10 +42,26 @@ func (ap *DefaultAuthProvider) Auth(username string, password []byte) (u User, e
 	if val, ok := ap.UserList[username]; ok {
 		err := bcrypt.CompareHashAndPassword(val.Password, password)
 		if err == nil {
+			msg := "Authenticated"
+
+			entry := accesslogs.CreateAccessLogEntryRequest{
+				Origin: origin, Level: "INFO",
+				Event: msg, AccountID: 1}
+			accesslogs.DBCreateAccessLogEntry(ap.Database.Get(), entry)
+
 			return val, nil
 		}
 	}
-	return User{}, errors.New("wrong password")
+	// Write the authentication error to the access logs.
+	msg := "Authentication failed: wrong password"
+
+	entry := accesslogs.CreateAccessLogEntryRequest{
+		Origin: origin, Level: "ERROR",
+		Event: msg, AccountID: 1}
+	accesslogs.DBCreateAccessLogEntry(ap.Database.Get(), entry)
+
+	// Return the same error to the caller.
+	return User{}, errors.New(msg)
 }
 
 // Close implements the AuthProvider interface.

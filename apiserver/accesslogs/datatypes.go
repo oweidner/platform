@@ -8,18 +8,31 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package accesslog
+package accesslogs
 
-// User represents an User object as it exists
-// in the database.
-type User struct {
-	ID        int64
-	Firstname string
-	Lastname  string
-	Email     string
-	Username  string
-	Password  string
+import (
+	"time"
+)
+
+// CreateAccessLogEntryRequest is the object that is expected by the
+// CreateAccessLogEntry() function.
+type CreateAccessLogEntryRequest struct {
+	Origin    string `binding:"required"`
+	Level     string `binding:"required"`
+	Event     string `binding:"required"`
+	AccountID int64  `binding:"required"`
 }
 
-// UserList represents a list of User objects.
-type UserList []User
+// AccessLog represents an access log object as it exists
+// in the database.
+type AccessLog struct {
+	ID        int64
+	Timestamp time.Time
+	Origin    string
+	Level     string
+	Event     string
+	AccountID int64
+}
+
+// AccessLogList represents a list of AccessLog objects.
+type AccessLogList []AccessLog

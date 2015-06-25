@@ -75,7 +75,7 @@ func New(configFile *string) *Platform {
 
 	// Instantiate / start-up the authentication backend
 
-	ap = auth.NewDefaultAuthProvider(userList)
+	ap = auth.NewDefaultAuthProvider(userList, ds)
 	//defer ap.Close()
 
 	server := apiserver.NewServer(ds, ap, cfg.Server.APIPrefix, !cfg.Server.DisableAuth, jwtPrivateKey, jwtPublicKey, cfg.JWT.Expiration)

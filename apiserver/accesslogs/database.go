@@ -8,64 +8,51 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package plans
+package accesslogs
 
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
-	"strconv"
-
-	"github.com/codewerft/platform/apiserver/responses"
-	"github.com/codewerft/platform/database"
-
-	"github.com/gavv/martini-render"
-	"github.com/go-martini/martini"
 )
 
-// Get retrieves one or more plan objects from the database and
-// sends them back to caller.
+// DBCreateAccessLogEntry creates a new User object in the database.
 //
-func Get(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
+func DBCreateAccessLogEntry(db *sql.DB, data CreateAccessLogEntryRequest) (AccessLogList, error) {
 
-	// planID is either -1 if no plan ID was provided or > 0 otherwise.
-	var planID int64 = -1
+	fmt.Printf("SDASDASDS")
 
-	// Convert the plan ID string to an integer. In case the conversion
-	// fails, an error response is sent back to the caller.
-	if params["p1"] != "" {
-		var err error
-		planID, err = strconv.ParseInt(params["p1"], 10, 64)
-		if err != nil {
-			responses.GetError(r, fmt.Sprintf("Invalid Plan ID: %v", planID))
-			return
-		}
-	}
-	// Retrieve the (list of) plans from the database. In case the
-	// database operation fails, an error response is sent back to the caller.
-	plans, err := DBGetPlans(db.Get(), planID)
+	stmt, err := db.Prepare(`
+		INSERT access_log SET timestamp=NOW(), origin=?, level=?, event=?, account_id=?`)
 	if err != nil {
-		responses.GetError(r, err.Error())
-		return
+		return nil, err
 	}
 
-	// Return the list of plans or a 404 if the user wasn't found.
-	if planID != -1 && len(plans) < 1 {
-		responses.GetNotFound(r)
-	} else {
-		responses.GetOK(r, plans)
+	res, err := stmt.Exec(
+		data.Origin, data.Level, data.Event, data.AccountID)
+	if err != nil {
+		return nil, err
 	}
+
+	// The id of the newly generated log entry
+	logID, _ := res.LastInsertId()
+	// Retrieve the newly created object from the database and return it
+	logs, err := DBGetLogs(db, logID)
+	if err != nil {
+		return nil, err
+	}
+	// Return the user object.
+	return logs, nil
 }
 
-// DBGetPlans returns a Plan object from the database.
-func DBGetPlans(db *sql.DB, planID int64) (PlanList, error) {
+// DBGetLogs returns a AccessLog object from the database.
+func DBGetLogs(db *sql.DB, logID int64) (AccessLogList, error) {
 
-	// If no userID is provided (userID is -1), all users are retreived. If
-	// a planID is given, a specific user is retreived.
+	// If no logID is provided (userID is -1), all users are retreived. If
+	// a logID is given, a specific log entry is retreived.
 	var rows *sql.Rows
 
-	if planID == -1 {
-		queryString := `SELECT * from plan`
+	if logID == -1 {
+		queryString := `SELECT * from access_log`
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
 			return nil, err
@@ -76,25 +63,26 @@ func DBGetPlans(db *sql.DB, planID int64) (PlanList, error) {
 		}
 
 	} else {
-		queryString := `SELECT * from plan WHERE id = ?`
+		queryString := `SELECT * from access_log WHERE id = ?`
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
 			return nil, err
 		}
-		rows, err = stmt.Query(planID)
+		rows, err = stmt.Query(logID)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// Read the rows into the target struct
-	var objs PlanList
+	var objs AccessLogList
 
 	for rows.Next() {
 
-		var obj Plan
+		var obj AccessLog
 		err := rows.Scan(
-			&obj.ID, &obj.Name)
+			&obj.ID, &obj.Timestamp, &obj.Origin, &obj.Level, &obj.Event,
+			&obj.AccountID)
 
 		// Forward the error
 		if err != nil {

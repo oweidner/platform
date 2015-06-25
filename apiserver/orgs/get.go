@@ -88,7 +88,7 @@ func DBGetOrgs(db *sql.DB, orgID int64) (OrgList, error) {
 	}
 
 	// Read the rows into the target struct
-	var objs []Org
+	var objs OrgList
 
 	for rows.Next() {
 

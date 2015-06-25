@@ -36,10 +36,13 @@ type AuthResponse struct {
 }
 
 // Auth is called for every POST request on the /auth resource.
-func Auth(u AuthRequest, a auth.Authenticator, r render.Render) {
+func Auth(u AuthRequest, a auth.Authenticator, r render.Render, req *http.Request) {
+
+	// Get the caller's IP address
+	originIP := req.RemoteAddr
 
 	// Authenticate the user with the password provided
-	user, err := a.Auth(u.Username, []byte(u.Password))
+	user, err := a.Auth(originIP, u.Username, []byte(u.Password))
 	if err != nil {
 		logging.Log.Error(fmt.Sprintf("[auth] Authentication failed for user %v", u.Username))
 		r.JSON(http.StatusUnauthorized,
