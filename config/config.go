@@ -10,7 +10,10 @@
 
 package config
 
-import "fmt"
+import (
+	"fmt"
+	"path"
+)
 
 // The Config struct defines the structure of the configuration file.
 //
@@ -43,7 +46,7 @@ type Config struct {
 
 // CheckConfig checks the configuration file values and sets defaults
 // wherever necessary.
-func CheckConfig(config *Config, filename string) error {
+func CheckConfig(config *Config, filename string, basepath string) error {
 
 	// Set the default to 12 hours if JWT:Expiration is not defined.
 	if config.Server.APIPrefix == "" {
@@ -95,6 +98,20 @@ func CheckConfig(config *Config, filename string) error {
 	if config.MySQL.Database == "" {
 		return fmt.Errorf("%v: 'mongodb' storage backend requires MySQL.database config option", filename)
 	}
+
+	// check if various paths are relative. if so, add the base path
+	if path.IsAbs(config.JWT.PublicKey) == false {
+		config.JWT.PublicKey = path.Join(basepath, config.JWT.PublicKey)
+	}
+	if path.IsAbs(config.JWT.PrivateKey) == false {
+		config.JWT.PrivateKey = path.Join(basepath, config.JWT.PrivateKey)
+	}
+	// if path.IsAbs(config.TLS.KeyFile) == false {
+	// 	config.TLS.KeyFile = path.Join(basepath, config.TLS.KeyFile)
+	// }
+	// if path.IsAbs(config.TLS.CertFile) == false {
+	// 	config.TLS.CertFile = path.Join(basepath, config.TLS.CertFile)
+	// }
 
 	return nil
 }
