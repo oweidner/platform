@@ -37,6 +37,11 @@ The Platform sources are in ` ~/workspace/platform/src/github.com/codewerft/plat
 go install -a -v github.com/codewerft/platform && go build && ./example -config=sample.cfg
 ```
 
+### Run the tests
+
+```
+ go test github.com/codewerft/platform -test.v --config=tests/test.cfg
+```
 
 ### Run the Example
 

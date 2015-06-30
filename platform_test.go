@@ -11,8 +11,10 @@
 package platform_test
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -43,15 +45,31 @@ func init() {
 	serverURL = testserver.URL
 }
 
-func TestCreateUser(t *testing.T) {
+// TestGetVersion tests GET /platform/version
+//
+func TestGetVersion(t *testing.T) {
 
-	_, err := http.Get(fmt.Sprintf("%v/platform/version", serverURL))
+	response, err := http.Get(fmt.Sprintf("%v/platform/version", serverURL))
 
 	if err != nil {
-		t.Error(err) //Something is wrong while sending request
+		t.Fatal(err)
 	}
 
-	// if request.StatusCode != 200 {
-	// 	t.Errorf("Success expected: %d", request.StatusCode) //Uh-oh this means our test failed
-	// }
+	defer response.Body.Close()
+	contents, _ := ioutil.ReadAll(response.Body)
+
+	var dat map[string]interface{}
+	if err := json.Unmarshal(contents, &dat); err != nil {
+		t.Fatal(err)
+	}
+	v1 := dat["Server"].(string)
+	if v1 == "" {
+		t.Error("Server version empty.")
+	}
+	v2 := dat["API"].(string)
+	if v2 == "" {
+		t.Error("API version empty.")
+	}
 }
+
+// TestAuth tests POST /platform/auth
