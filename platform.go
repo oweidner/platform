@@ -30,6 +30,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var (
+	// ServerVersion holds the version of the platform server.
+	// Set externally via -ldflags "-X platform.ServerVersion x.y.z"
+	ServerVersion string
+
+	// APIVersion holds the version of the API.
+	// Set externally via -ldflags "-X platform.APIVersion x.y.z"
+	APIVersion string
+)
+
 // Platform represents the top level application.
 type Platform struct {
 	Router *martini.Router

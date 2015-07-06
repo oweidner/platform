@@ -1,0 +1,63 @@
+{
+	"ImportPath": "github.com/codewerft/platform",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/gcfg",
+			"Rev": "c2d3050044d05357eaf6c3547249ba57c5e235cb"
+		},
+		{
+			"ImportPath": "github.com/attilaolah/strict",
+			"Comment": "0.1.0",
+			"Rev": "44893ecfb18d76bd04dcad6a0edd4356eaa31358"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/inject",
+			"Comment": "v1.0-rc1-10-g33e0aa1",
+			"Rev": "33e0aa1cb7c019ccc3fbe049a8262a6403d30504"
+		},
+		{
+			"ImportPath": "github.com/dgrijalva/jwt-go",
+			"Comment": "v2.2.0-28-g2e53eb6",
+			"Rev": "2e53eb673c4450614e3bca6f345197f9527dce71"
+		},
+		{
+			"ImportPath": "github.com/gavv/martini-render",
+			"Rev": "8ce6b0d7c2db67cd2d676b62d3cf01b45a67f1be"
+		},
+		{
+			"ImportPath": "github.com/go-martini/martini",
+			"Comment": "v1.0-130-g17752b2",
+			"Rev": "17752b20aa29c599c7b6c22f1901d63983c5c25b"
+		},
+		{
+			"ImportPath": "github.com/go-sql-driver/mysql",
+			"Comment": "v1.2-112-gfb72997",
+			"Rev": "fb7299726d2e68745a8805b14f2ff44b5c2cfa84"
+		},
+		{
+			"ImportPath": "github.com/martini-contrib/binding",
+			"Rev": "8aaceec3b52c275477f32c95ea5c6e8ccaba04c5"
+		},
+		{
+			"ImportPath": "github.com/martini-contrib/cors",
+			"Rev": "553b9208d353a39b0850c02355f478ba020c86d7"
+		},
+		{
+			"ImportPath": "github.com/op/go-logging",
+			"Rev": "e8d5414f0947014548c2334044a0fac13187dfee"
+		},
+		{
+			"ImportPath": "github.com/oxtoacart/bpool",
+			"Rev": "754d38fccfc6e52083355014b6abc8d626445dfd"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/bcrypt",
+			"Rev": "2f677ffe0a128ed6d4e3ecb565e4d29a6c6365da"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "2f677ffe0a128ed6d4e3ecb565e4d29a6c6365da"
+		}
+	]
+}
