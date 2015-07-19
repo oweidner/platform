@@ -11,6 +11,7 @@
 package plans
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -40,14 +41,32 @@ func Delete(req *http.Request, params martini.Params, r render.Render, db databa
 			return
 		}
 	}
-	// Use the Generic 'delete' function from the database helper package to
-	// delete the account.
-	// err := database.GenericDelete(db.Get(), "DELETE FROM plan WHERE id = ?", planID)
-	// if err != nil {
-	// 	responses.DeleteError(r, err.Error())
-	// 	return
-	// }
 
-	// Respond with OK.
+	// Delete the plan object from the database. In case the
+	// database operation fails, an error response is sent back to the caller.
+	err := DBDeletePlan(db.Get(), planID)
+	if err != nil {
+		responses.DeleteError(r, err.Error())
+		return
+	}
+
+	// Return the modified plan.
 	responses.DeleteOK(r, "Plan deleted")
+}
+
+// DBDeletePlan removes the plan from the MySQL database.
+func DBDeletePlan(db *sql.DB, planID int64) error {
+
+	stmt, err := db.Prepare(`
+		DELETE from platform_plan WHERE id=?`)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(planID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

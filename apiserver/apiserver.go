@@ -17,9 +17,10 @@ import (
 	"github.com/codewerft/platform/database"
 	"github.com/codewerft/platform/logging"
 
+	"github.com/codewerft/platform/apiserver/account"
 	"github.com/codewerft/platform/apiserver/orgs"
 	"github.com/codewerft/platform/apiserver/plans"
-	"github.com/codewerft/platform/apiserver/account"
+	"github.com/codewerft/platform/apiserver/roles"
 
 	"github.com/codewerft/platform/apiserver/accesslogs"
 
@@ -75,11 +76,11 @@ func AddDefaultResource(r martini.Router, basePath string, authEnabled bool,
 
 	/* Add the default modify resource
 	 */
-	r.Put(fmt.Sprintf("%v/:p1", basePath),
+	r.Post(fmt.Sprintf("%v/:p1", basePath),
 		strict.Accept("application/json", "text/html"),
 		binding.Bind(modifyReq),
 		JWTAuth(authEnabled),
-		createFn)
+		modifyFn)
 }
 
 // NewServer creates a new Server instance.
@@ -140,7 +141,13 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 		binding.Bind(AuthRequest{}),
 		Auth)
 
-	AddDefaultResource(r, fmt.Sprintf("/%v/account", prefixPath), authEnabled,
+	// User info API
+	r.Get("/accounts/me",
+		strict.Accept("application/json", "text/html"),
+		JWTAuth(authEnabled && false),
+		GetSelf)
+
+	AddDefaultResource(r, fmt.Sprintf("/%v/accounts", prefixPath), authEnabled,
 		account.Get, account.Get, account.Delete, account.Create,
 		account.CreateAccountRequest{}, account.Modify, account.ModifyAccountRequest{})
 
@@ -157,36 +164,9 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 		plans.Get, plans.Get, plans.Delete, plans.Create,
 		plans.CreatePlanRequest{}, plans.Modify, plans.ModifyPlanRequest{})
 
-	// // -------------------- The /plans resource --------------------
-	//
-	// /* Retreive a list of all available plans.
-	//  */
-	// r.Get("/plans",
-	// 	strict.Accept("application/json", "text/html"),
-	// 	JWTAuth(authEnabled),
-	// 	plans.GetPlans)
-	//
-	// /* Retreive information about a specific plan.
-	//  */
-	// r.Get("/plans/:pid",
-	// 	strict.Accept("application/json", "text/html"),
-	// 	JWTAuth(authEnabled),
-	// 	account.GetPlans)
-	//
-	// /* Create a new plan.
-	//  */
-	// r.Put("/plans/:pid",
-	// 	strict.Accept("application/json", "text/html"),
-	// 	binding.Bind(account.CreateAccountRequest{}),
-	// 	JWTAuth(authEnabled),
-	// 	account.CreatePlan)
-	//
-	// /* Delete a plan.
-	//  */
-	// r.Delete("/plans/:pid",
-	// 	strict.Accept("application/json", "text/html"),
-	// 	JWTAuth(authEnabled),
-	// 	account.DeletePlan)
+	AddDefaultResource(r, fmt.Sprintf("/%v/roles", prefixPath), authEnabled,
+		roles.Get, roles.Get, roles.Delete, roles.Create,
+		roles.CreateRoleRequest{}, roles.Modify, roles.ModifyRoleRequest{})
 
 	//r.NotFound(strict.MethodNotAllowed, strict.NotFound)
 	m.Action(r.Handle)

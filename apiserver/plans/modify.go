@@ -25,7 +25,13 @@ import (
 // ModifyPlanRequest is the object that is expected by the
 // Modify() function.
 type ModifyPlanRequest struct {
-	Name string `binding:"required"`
+	Name            string
+	Description     string  `json:",omitempty"`
+	Parameters      string  `json:",omitempty"`
+	Rate            float64 `json:",string"`
+	VATPercentage   float64 `json:",string,omitempty"`
+	BillingInterval uint64  `json:",string"`
+	MinDuration     uint64  `json:",string"`
 }
 
 // Modify modifies a plan object in the database.
@@ -62,12 +68,12 @@ func Modify(r render.Render, params martini.Params, db database.Datastore, data 
 func DBModifyPlan(db *sql.DB, planID int64, data ModifyPlanRequest) (PlanList, error) {
 
 	stmt, err := db.Prepare(`
-		UPDATE plan SET name=? WHERE id=?`)
+		UPDATE platform_plan SET name=?, description=?, rate=?, billing_interval=?, min_duration=?, vat_percentage=?, parameters=? WHERE id=?`)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = stmt.Exec(data.Name, planID)
+	_, err = stmt.Exec(data.Name, data.Description, data.Rate, data.BillingInterval, data.MinDuration, data.VATPercentage, data.Parameters, planID)
 	if err != nil {
 		return nil, err
 	}

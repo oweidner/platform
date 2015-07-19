@@ -18,13 +18,13 @@ import (
 
 // DBWriteLoginError is a convenience function that writes a new login error
 // entry to the database.
-func DBWriteLoginError(db *sql.DB, origin string, accountname string, details string) {
+func DBWriteLoginError(db *sql.DB, origin string, username string, details string) {
 	// Create the log entry object
 	entry := CreateAccessLogEntryRequest{
 		Origin:   origin,
 		Level:    "ERROR",
 		Event:    fmt.Sprintf("Authentication failed: %v", details),
-		Username: accountname}
+		Username: username}
 	// Write the entry to the database
 	_, err := DBCreateAccessLogEntry(db, entry)
 	if err != nil {
@@ -35,13 +35,13 @@ func DBWriteLoginError(db *sql.DB, origin string, accountname string, details st
 
 // DBWriteLoginOK is a convenience function that writes a new login info
 // entry to the database.
-func DBWriteLoginOK(db *sql.DB, origin string, accountname string) {
+func DBWriteLoginOK(db *sql.DB, origin string, username string) {
 	// Create the log entry object
 	entry := CreateAccessLogEntryRequest{
 		Origin:   origin,
 		Level:    "INFO",
 		Event:    "Authentication successful.",
-		Username: accountname}
+		Username: username}
 	// Write the entry to the database
 	_, err := DBCreateAccessLogEntry(db, entry)
 	if err != nil {
@@ -55,7 +55,7 @@ func DBWriteLoginOK(db *sql.DB, origin string, accountname string) {
 func DBCreateAccessLogEntry(db *sql.DB, data CreateAccessLogEntryRequest) (AccessLogList, error) {
 
 	stmt, err := db.Prepare(`
-		INSERT platform_access_log SET timestamp=NOW(), origin=?, level=?, event=?, accountname=?`)
+		INSERT platform_access_log SET timestamp=NOW(), origin=?, level=?, event=?, username=?`)
 	if err != nil {
 		return nil, err
 	}

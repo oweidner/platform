@@ -8,9 +8,15 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package auth
+package roles
 
-// Authenticator defines the interface for all authentication providers.
-type Authenticator interface {
-	Auth(origin string, username string, password []byte) error
+// Role represents a Role object as it exists in the database.
+type Role struct {
+	ID          int64
+	Name        string
+	Description string `json:",omitempty"`
+	Parameters  string `json:",omitempty"`
 }
+
+// RoleList represents a list of Organization object.
+type RoleList []Role

@@ -12,8 +12,10 @@ package orgs
 
 // Org represents an organization object as it exists in the database.
 type Org struct {
-	ID   int64
-	Name string
+	ID      int64
+	Orgname string
+	Name    string
+	Email   string
 }
 
 // OrgList represents a list of Organization object.

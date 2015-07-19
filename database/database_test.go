@@ -163,7 +163,7 @@ func (s *DataStoreTests) TestSurveyResults(c *C) {
 	err = s.Store.AddSurveyResult(&r1)
 	c.Assert(err, NotNil)
 
-	// changing the accountname should allow us to add the result
+	// changing the username should allow us to add the result
 	r1.FBNR = "dreadlock_rasta"
 	err = s.Store.AddSurveyResult(&r1)
 

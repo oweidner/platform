@@ -83,8 +83,8 @@ func DeleteError(r render.Render, message string) {
 }
 
 // XGetOK sends the result back to the client.
-func DeleteOK(r render.Render, data interface{}) {
+func DeleteOK(r render.Render, message string) {
 	result := GetResponse{Status{
-		Status: "OK", Message: ""}, data}
+		Status: "OK", Message: message}, nil}
 	r.JSON(http.StatusOK, result)
 }

@@ -35,7 +35,7 @@ func NewDefaultAuthProvider(ds database.Datastore, rootAccount account.Account) 
 }
 
 // Auth implements the AuthProvider interface.
-func (ap *DefaultAuthProvider) Auth(origin string, accountname string, password []byte) error {
+func (ap *DefaultAuthProvider) Auth(origin string, username string, password []byte) error {
 
 	var finalError error
 
@@ -44,12 +44,12 @@ func (ap *DefaultAuthProvider) Auth(origin string, accountname string, password 
 	var accountUsername, accountPassword string
 	sqlErr := db.QueryRow(`
 		SELECT username, password FROM platform_account
-        WHERE username = ?`, accountname).Scan(&accountUsername, &accountPassword)
+        WHERE username = ?`, username).Scan(&accountUsername, &accountPassword)
 	if sqlErr == nil {
 		bcryptErr := bcrypt.CompareHashAndPassword([]byte(accountPassword), password)
 		if bcryptErr == nil {
 			// Account authenticated successfully.
-			accesslogs.DBWriteLoginOK(ap.Database.Get(), origin, accountname)
+			accesslogs.DBWriteLoginOK(ap.Database.Get(), origin, username)
 			return nil
 		}
 		finalError = bcryptErr
@@ -60,20 +60,20 @@ func (ap *DefaultAuthProvider) Auth(origin string, accountname string, password 
 
 	// Account wasn't found in the database. Let's check if it's the root account.
 	if accountUsername == "" {
-		if accountname == ap.RootAccount.Username {
+		if username == ap.RootAccount.Username {
 			bcryptErr := bcrypt.CompareHashAndPassword([]byte(ap.RootAccount.Password), password)
 			if bcryptErr == nil {
 				// Root account authenticated successfully.
-				accesslogs.DBWriteLoginOK(ap.Database.Get(), origin, accountname)
+				accesslogs.DBWriteLoginOK(ap.Database.Get(), origin, username)
 				return nil
 			}
 			finalError = bcryptErr
 		} else {
-			finalError = fmt.Errorf("Unknown username '%v'", accountname)
+			finalError = fmt.Errorf("Unknown username '%v'", username)
 		}
 	}
 
 	// Neither datbase nor root account authentication was successfull.
-	accesslogs.DBWriteLoginError(ap.Database.Get(), origin, accountname, finalError.Error())
+	accesslogs.DBWriteLoginError(ap.Database.Get(), origin, username, finalError.Error())
 	return errors.New("Authentication failed.")
 }

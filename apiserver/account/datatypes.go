@@ -19,6 +19,7 @@ type Account struct {
 	Email     string
 	Username  string
 	Password  string
+	Roles     []string
 }
 
 // AccountList represents a list of Account objects.

@@ -75,7 +75,7 @@ func New(configFile *string) *Platform {
 		logging.Log.Fatal(err)
 	}
 
-	// Create the root account credentials from the accountname and password
+	// Create the root account credentials from the username and password
 	// values defined in the config file.
 	rootAccount := account.Account{}
 	pwdHash1, _ := bcrypt.GenerateFromPassword([]byte(cfg.Server.AdminPassword), 0)

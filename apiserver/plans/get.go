@@ -76,7 +76,9 @@ func DBGetPlans(db *sql.DB, planID int64) (PlanList, error) {
 		}
 
 	} else {
-		queryString := `SELECT * FROM platform_plan WHERE id = ?`
+		queryString := `SELECT id, name, description, rate, billing_interval,
+		min_duration, vat_percentage, parameters FROM platform_plan WHERE id = ?`
+
 		stmt, err := db.Prepare(queryString)
 		if err != nil {
 			return nil, err
@@ -94,7 +96,7 @@ func DBGetPlans(db *sql.DB, planID int64) (PlanList, error) {
 
 		var obj Plan
 		err := rows.Scan(
-			&obj.ID, &obj.Name)
+			&obj.ID, &obj.Name, &obj.Description, &obj.Rate, &obj.BillingInterval, &obj.MinDuration, &obj.VATPercentage, &obj.Parameters)
 
 		// Forward the error
 		if err != nil {

@@ -50,24 +50,22 @@ func JWTAuth(base interface{}) martini.Handler {
 			return
 		}
 
-		if token.Valid {
-
-			user := token.Claims["user"]
-			role := token.Claims["role"]
-
-			if user == nil {
-				r.JSON(http.StatusUnauthorized, ErrorResponse{
-					Code:    http.StatusUnauthorized,
-					Message: "Invalid Token Data (user)"})
-				return
-			}
-			context.Map(JWTAuthAccount{Username: user.(string), Role: role.(string)})
-
-		} else {
+		if token.Valid == false {
 			r.JSON(http.StatusUnauthorized, ErrorResponse{
 				Code:    http.StatusUnauthorized,
 				Message: "Invalid Token"})
 			return
 		}
+
+		user := token.Claims["user"]
+		role := token.Claims["role"]
+
+		if user == nil {
+			r.JSON(http.StatusUnauthorized, ErrorResponse{
+				Code:    http.StatusUnauthorized,
+				Message: "Invalid Token Data (user)"})
+			return
+		}
+		context.Map(JWTAuthAccount{Username: user.(string), Role: role.(string)})
 	}
 }

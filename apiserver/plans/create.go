@@ -23,7 +23,13 @@ import (
 // CreatePlanRequest is the object that is expected by the
 // Create() function.
 type CreatePlanRequest struct {
-	Name string `binding:"required"`
+	Name            string
+	Description     string  `json:",omitempty"`
+	Parameters      string  `json:",omitempty"`
+	Rate            float64 `json:",string"`
+	VATPercentage   float64 `json:",string,omitempty"`
+	BillingInterval uint64  `json:",string"`
+	MinDuration     uint64  `json:",string"`
 }
 
 // Create creates a new Account object in
@@ -45,12 +51,14 @@ func Create(r render.Render, params martini.Params, db database.Datastore, data 
 //
 func DBCreatePlan(db *sql.DB, data CreatePlanRequest) (PlanList, error) {
 
-	stmt, err := db.Prepare(`INSERT platform_plan SET name=?`)
+	stmt, err := db.Prepare(`INSERT platform_plan SET name=?, description=?,
+		rate=?, billing_interval=?, min_duration=?, vat_percentage=?, parameters=?`)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := stmt.Exec(data.Name)
+	res, err := stmt.Exec(data.Name, data.Description, data.Rate,
+		data.BillingInterval, data.MinDuration, data.VATPercentage, data.Parameters)
 	if err != nil {
 		return nil, err
 	}

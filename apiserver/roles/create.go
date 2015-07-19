@@ -8,12 +8,10 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package orgs
+package roles
 
 import (
 	"database/sql"
-	"fmt"
-	"strconv"
 
 	"github.com/codewerft/platform/apiserver/responses"
 	"github.com/codewerft/platform/database"
@@ -22,63 +20,51 @@ import (
 	"github.com/go-martini/martini"
 )
 
-// ModifyOrgRequest is the object that is expected by the
-// Modify() function.
-type ModifyOrgRequest struct {
-	Orgname string
-	Name    string
-	Email   string
+// CreateRoleRequest is the object that is expected by the
+// Create() function.
+type CreateRoleRequest struct {
+	Name        string
+	Description string `json:",omitempty"`
+	Parameters  string `json:",omitempty"`
 }
 
-// Modify modifies a org object in the database.
-//
-func Modify(r render.Render, params martini.Params, db database.Datastore, data ModifyOrgRequest) {
+// Create creates a new Account object in
+// the database.
+func Create(r render.Render, params martini.Params, db database.Datastore, data CreateRoleRequest) {
 
-	// orgID is either -1 if no orgm ID was provided or > 0 otherwise.
-	var orgID int64 = -1
-
-	// Convert the org ID string to a 64-bit integer. In case the conversion
-	// fails, an error response is sent back to the caller.
-	if params["p1"] != "" {
-		var err error
-		orgID, err = strconv.ParseInt(params["p1"], 10, 64)
-		if err != nil {
-			responses.ModifyError(r, fmt.Sprintf("Invalid Organisation ID: %v", orgID))
-			return
-		}
-	}
-	// Update the org object in the database. In case the
+	// Store the Role object in the database. In case the
 	// database operation fails, an error response is sent back to the caller.
-	modifiedOrg, err := DBModifyOrg(db.Get(), orgID, data)
+	newRole, err := DBCreateRole(db.Get(), data)
 	if err != nil {
-		responses.ModifyError(r, err.Error())
+		responses.CreateError(r, err.Error())
 		return
 	}
-
-	// Return the modified org.
-	responses.ModifyOK(r, modifiedOrg)
+	// Return the account.
+	responses.CreateOK(r, newRole)
 }
 
-// DBModifyOrg modifies a Account object in the database.
+// DBCreateRole creates a new Account object in the database.
 //
-func DBModifyOrg(db *sql.DB, orgID int64, data ModifyOrgRequest) (OrgList, error) {
+func DBCreateRole(db *sql.DB, data CreateRoleRequest) (RoleList, error) {
 
-	stmt, err := db.Prepare(`
-		UPDATE platform_organisation SET orgname=?, name=?, email=? WHERE id=?`)
+	stmt, err := db.Prepare(`INSERT platform_role SET name=?, description=?,
+		 parameters=?`)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = stmt.Exec(data.Orgname, data.Name, data.Email, orgID)
+	res, err := stmt.Exec(data.Name, data.Description, data.Parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	// Retrieve the modified object from the database and return it
-	account, err := DBGetOrgs(db, orgID)
+	// The id of the newly generated Role
+	RoleID, _ := res.LastInsertId()
+	// Retrieve the newly created object from the database and return it
+	Roles, err := DBGetRoles(db, RoleID)
 	if err != nil {
 		return nil, err
 	}
-
-	return account, nil
+	// Return the account object.
+	return Roles, nil
 }

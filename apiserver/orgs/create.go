@@ -23,7 +23,9 @@ import (
 // CreateOrgRequest is the object that is expected by the
 // Create() function.
 type CreateOrgRequest struct {
-	Name string `binding:"required"`
+	Orgname string
+	Name    string
+	Email   string
 }
 
 // Create creates a new organiztion object in
@@ -45,12 +47,12 @@ func Create(r render.Render, params martini.Params, db database.Datastore, data 
 //
 func DBCreateOrg(db *sql.DB, data CreateOrgRequest) (OrgList, error) {
 
-	stmt, err := db.Prepare(`INSERT platform_organization SET name=?`)
+	stmt, err := db.Prepare(`INSERT platform_organisation SET orgname=?, name=?, email=?`)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := stmt.Exec(data.Name)
+	res, err := stmt.Exec(data.Orgname, data.Name, data.Email)
 	if err != nil {
 		return nil, err
 	}
