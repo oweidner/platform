@@ -35,6 +35,12 @@ func List(req *http.Request, params martini.Params, r render.Render, db database
 		responses.Error(r, err.Error())
 		return
 	}
+
+	// "black-out" the passwords
+	for idx := range accounts {
+		accounts[idx].Password = "***"
+	}
+
 	responses.OKStatusPlusData(r, accounts, len(accounts))
 }
 
@@ -59,5 +65,9 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 		responses.Error(r, err.Error())
 		return
 	}
+
+	// "black-out" the password
+	account.Password = "***"
+
 	responses.OKStatusPlusData(r, account, 1)
 }
