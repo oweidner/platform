@@ -8,65 +8,38 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package orgs
+package organisations
 
 import (
-	"database/sql"
-	"fmt"
-	"net/http"
-	"strconv"
-
 	"github.com/codewerft/platform/apiserver/responses"
+	"github.com/codewerft/platform/apiserver/utils"
 	"github.com/codewerft/platform/database"
 
 	"github.com/gavv/martini-render"
 	"github.com/go-martini/martini"
 )
 
-// Delete removes one or more Org objects from the database and
-// sends them back to caller.
+// Modify modifies a plan object in the database.
 //
-func Delete(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
+func Modify(r render.Render, params martini.Params, db database.Datastore, data Organisation) {
 
-	// OrgID is either -1 if no Org ID was provided or > 0 otherwise.
-	var OrgID int64 = -1
+	db.GetDBMap().AddTableWithName(Organisation{}, "platform_organisation").SetKeys(true, "id")
 
-	// Convert the Org ID string to a 64-bit integer. In case the conversion
-	// fails, an error response is sent back to the caller.
-	if params["p1"] != "" {
-		var err error
-		OrgID, err = strconv.ParseInt(params["p1"], 10, 64)
-		if err != nil {
-			responses.DeleteError(r, fmt.Sprintf("Invalid Organisation ID: %v", OrgID))
-			return
-		}
+	// Parse the resource ID into an int64
+	resourceID, parseError := utils.ParseResourceID(params["p1"])
+	if parseError != nil {
+		responses.Error(r, parseError.Error())
 	}
 
-	// Delete the Org object from the database. In case the
+	// set the resourceID in the data struct so gorp knows which row to update
+	data.ID = resourceID
+
+	// Store the plan object in the database. In case the
 	// database operation fails, an error response is sent back to the caller.
-	err := DBDeleteOrg(db.Get(), OrgID)
+	_, err := db.GetDBMap().Update(&data)
 	if err != nil {
-		responses.DeleteError(r, err.Error())
+		responses.Error(r, err.Error())
 		return
 	}
-
-	// Return the modified Org.
-	responses.DeleteOK(r, "Organisation removed from Database")
-}
-
-// DBDeleteOrg removes the Org from the MySQL database.
-func DBDeleteOrg(db *sql.DB, OrgID int64) error {
-
-	stmt, err := db.Prepare(`
-		DELETE from platform_organisation WHERE id=?`)
-	if err != nil {
-		return err
-	}
-
-	_, err = stmt.Exec(OrgID)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	responses.OKStatusPlusData(r, data, 1)
 }

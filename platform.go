@@ -20,7 +20,7 @@ import (
 
 	"code.google.com/p/gcfg"
 	"github.com/codewerft/platform/apiserver"
-	"github.com/codewerft/platform/apiserver/account"
+	"github.com/codewerft/platform/apiserver/accounts"
 
 	"github.com/codewerft/platform/auth"
 	"github.com/codewerft/platform/config"
@@ -77,9 +77,9 @@ func New(configFile *string) *Platform {
 
 	// Create the root account credentials from the username and password
 	// values defined in the config file.
-	rootAccount := account.Account{}
+	rootAccount := accounts.Account{}
 	pwdHash1, _ := bcrypt.GenerateFromPassword([]byte(cfg.Server.AdminPassword), 0)
-	rootAccount = account.Account{
+	rootAccount = accounts.Account{
 		Firstname: "Root",
 		Lastname:  "Admin Account",
 		Username:  cfg.Server.AdminAccount,

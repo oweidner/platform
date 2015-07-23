@@ -15,7 +15,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/codewerft/platform/apiserver/account"
+	"github.com/codewerft/platform/apiserver/accounts"
 	"github.com/codewerft/platform/auth"
 	"github.com/codewerft/platform/database"
 	"github.com/codewerft/platform/logging"
@@ -105,22 +105,22 @@ func GetSelf(req *http.Request, params martini.Params, r render.Render, db datab
 	user := token.Claims["user"]
 
 	// Create a 'fake' admin account
-	obj := account.Account{
-		ID:        1,
-		Firstname: "Platform",
-		Lastname:  "Superuser",
-		Email:     "platform.codewerft.net",
-		Username:  user.(string),
-		Roles:     []string{"admin"}}
+	obj := accounts.Account{
+		ID:           1,
+		Firstname:    "Platform",
+		Lastname:     "Superuser",
+		ContactEmail: "platform.codewerft.net",
+		Username:     user.(string),
+		Roles:        []string{"admin"}}
 
 	type Account struct {
-		ID        int64
-		Firstname string
-		Lastname  string
-		Email     string
-		Username  string
-		Password  string
-		Roles     []string
+		ID           int64
+		Firstname    string
+		Lastname     string
+		ContactEmail string
+		Username     string
+		Password     string
+		Roles        []string
 	}
 
 	r.JSON(http.StatusOK, obj)

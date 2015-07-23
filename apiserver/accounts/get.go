@@ -7,47 +7,57 @@
 //
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
-//
 
-package organizations
+package accounts
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/codewerft/platform/apiserver/responses"
+	"github.com/codewerft/platform/apiserver/utils"
 	"github.com/codewerft/platform/database"
 
 	"github.com/gavv/martini-render"
 	"github.com/go-martini/martini"
 )
 
-// Get retrieves one or more organization objects from the database and
+// List returns the list of available resources.
+//
+func List(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
+
+	db.GetDBMap().AddTableWithName(Account{}, "platform_account").SetKeys(true, "id")
+
+	// Retreive the requested resource from the database. In case the
+	// database operation fails, an error response is sent back to the caller.
+	var accounts AccountList
+	_, err := db.GetDBMap().Select(&accounts, "SELECT * FROM platform_account ORDER BY id")
+	if err != nil {
+		responses.Error(r, err.Error())
+		return
+	}
+	responses.OKStatusPlusData(r, accounts, len(accounts))
+}
+
+// Get retrieves one or more resource objects from the database and
 // sends them back to caller.
 //
 func Get(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
 
-	// orgID is either -1 if no organization ID was provided or > 0 otherwise.
-	var orgID int64 = -1
+	db.GetDBMap().AddTableWithName(Account{}, "platform_account").SetKeys(true, "id")
 
-	// Convert the orgID string to an integer. In case the conversion
-	// fails, an error response is sent back to the caller.
-	if params["p1"] != "" {
-		var err error
-		orgID, err = strconv.ParseInt(params["p1"], 10, 64)
-		if err != nil {
-			responses.GetError(r, "Invalid Organization ID.")
-			return
-		}
+	// Parse the resource ID into an int64
+	resourceID, parseError := utils.ParseResourceID(params["p1"])
+	if parseError != nil {
+		responses.Error(r, parseError.Error())
 	}
-	// Retrieve the (list of) organizations from the database. In case the
+
+	// Retreive the list of all resources from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
-	orgs, err := DBGetOrganizations(db.Get(), orgID)
+	var account Account
+	err := db.GetDBMap().SelectOne(&account, "SELECT * FROM platform_account where id=?", resourceID)
 	if err != nil {
-		responses.GetError(r, err.Error())
+		responses.Error(r, err.Error())
 		return
 	}
-
-	// Return the account.
-	responses.GetOK(r, orgs)
+	responses.OKStatusPlusData(r, account, 1)
 }

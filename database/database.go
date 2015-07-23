@@ -14,6 +14,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	"gopkg.in/gorp.v1"
+
 	"github.com/codewerft/platform/logging"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -21,7 +23,8 @@ import (
 
 // Datastore provides the common interface for all storage providers.
 type Datastore interface {
-	Get() *sql.DB
+	GetDB() *sql.DB
+	GetDBMap() *gorp.DbMap
 	Close()
 }
 
@@ -29,6 +32,7 @@ type Datastore interface {
 //
 type DefaultDatastore struct {
 	DB       sql.DB
+	DBMap    gorp.DbMap
 	IsClosed bool
 }
 
@@ -54,9 +58,13 @@ func NewDefaultDatastore(hostname string, dbname string, username string, passwo
 	}
 	logging.Log.Info("Connection to MySQL server established.")
 
+	// Set up GORP
+	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{"InnoDB", "UTF8"}}
+
 	ds := DefaultDatastore{
 		// Session:  *session,
 		DB:       *db,
+		DBMap:    *dbmap,
 		IsClosed: false,
 	}
 	return &ds
@@ -69,9 +77,16 @@ func (ds *DefaultDatastore) Close() {
 	ds.IsClosed = true
 }
 
-// Close implements the Datastore interface.
+// GetDB returns the database handle.
 //
-func (ds *DefaultDatastore) Get() *sql.DB {
+func (ds *DefaultDatastore) GetDB() *sql.DB {
 	// ds.Session.Close()
 	return &ds.DB
+}
+
+// GetDBMap returns the database map handle.
+//
+func (ds *DefaultDatastore) GetDBMap() *gorp.DbMap {
+	// ds.Session.Close()
+	return &ds.DBMap
 }

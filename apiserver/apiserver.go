@@ -17,8 +17,8 @@ import (
 	"github.com/codewerft/platform/database"
 	"github.com/codewerft/platform/logging"
 
-	"github.com/codewerft/platform/apiserver/account"
-	"github.com/codewerft/platform/apiserver/orgs"
+	"github.com/codewerft/platform/apiserver/accounts"
+	"github.com/codewerft/platform/apiserver/organisations"
 	"github.com/codewerft/platform/apiserver/plans"
 	"github.com/codewerft/platform/apiserver/roles"
 
@@ -43,42 +43,42 @@ var (
 type getFunc func(int) string
 
 func AddDefaultResource(r martini.Router, basePath string, authEnabled bool,
-	getFn interface{}, listFn interface{}, deleteFn interface{}, createFn interface{}, createReq interface{}, modifyFn interface{}, modifyReq interface{}) {
+	listFn interface{}, getFn interface{}, deleteFn interface{}, createFn interface{}, modifyFn interface{}, datatype interface{}) {
 
-	/* Add the default list resource
-	 */
-	r.Get(fmt.Sprintf("%v", basePath),
-		strict.Accept("application/json", "text/html"),
-		JWTAuth(authEnabled),
-		listFn)
-
-	/* Add the default get resource
+	/* List the resources
 	 */
 	r.Get(fmt.Sprintf("%v/:p1", basePath),
 		strict.Accept("application/json", "text/html"),
 		JWTAuth(authEnabled),
 		getFn)
 
-	/* Add the default delete resource
+	/* Get a resource
+	 */
+	r.Get(fmt.Sprintf("%v", basePath),
+		strict.Accept("application/json", "text/html"),
+		JWTAuth(authEnabled),
+		listFn)
+
+	/* Delete a resource
 	 */
 	r.Delete(fmt.Sprintf("%v/:p1", basePath),
 		strict.Accept("application/json", "text/html"),
 		JWTAuth(authEnabled),
 		deleteFn)
 
-	/* Add the default create resource
+	/* Create a new resource
 	 */
 	r.Put(fmt.Sprintf("%v", basePath),
 		strict.Accept("application/json", "text/html"),
-		binding.Bind(createReq),
+		binding.Bind(datatype),
 		JWTAuth(authEnabled),
 		createFn)
 
-	/* Add the default modify resource
+	/* Modify a resource
 	 */
 	r.Post(fmt.Sprintf("%v/:p1", basePath),
 		strict.Accept("application/json", "text/html"),
-		binding.Bind(modifyReq),
+		binding.Bind(datatype),
 		JWTAuth(authEnabled),
 		modifyFn)
 }
@@ -147,26 +147,34 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 		JWTAuth(authEnabled && false),
 		GetSelf)
 
-	AddDefaultResource(r, fmt.Sprintf("/%v/accounts", prefixPath), authEnabled,
-		account.Get, account.Get, account.Delete, account.Create,
-		account.CreateAccountRequest{}, account.Modify, account.ModifyAccountRequest{})
-
 	r.Get(fmt.Sprintf("/%v/accesslogs", prefixPath),
 		strict.Accept("application/json", "text/html"),
 		JWTAuth(authEnabled),
 		accesslogs.Get)
 
-	AddDefaultResource(r, fmt.Sprintf("/%v/orgs", prefixPath), authEnabled,
-		orgs.Get, orgs.Get, orgs.Delete, orgs.Create,
-		orgs.CreateOrgRequest{}, orgs.Modify, orgs.ModifyOrgRequest{})
+	// Defines /resources/* resources
+	//
+	AddDefaultResource(r, fmt.Sprintf("/%v/accounts", prefixPath), authEnabled,
+		accounts.List, accounts.Get, accounts.Delete, accounts.Create, accounts.Modify,
+		accounts.Account{})
 
+	// Defines /organisations/* resources
+	//
+	AddDefaultResource(r, fmt.Sprintf("/%v/organisations", prefixPath), authEnabled,
+		organisations.List, organisations.Get, organisations.Delete, organisations.Create, organisations.Modify,
+		organisations.Organisation{})
+
+	// Defines /plans/* resources
+	//
 	AddDefaultResource(r, fmt.Sprintf("/%v/plans", prefixPath), authEnabled,
-		plans.Get, plans.Get, plans.Delete, plans.Create,
-		plans.CreatePlanRequest{}, plans.Modify, plans.ModifyPlanRequest{})
+		plans.List, plans.Get, plans.Delete, plans.Create, plans.Modify,
+		plans.Plan{})
 
+	// Defines /roles/* resources
+	//
 	AddDefaultResource(r, fmt.Sprintf("/%v/roles", prefixPath), authEnabled,
-		roles.Get, roles.Get, roles.Delete, roles.Create,
-		roles.CreateRoleRequest{}, roles.Modify, roles.ModifyRoleRequest{})
+		roles.List, roles.Get, roles.Delete, roles.Create, roles.Modify,
+		roles.Role{})
 
 	//r.NotFound(strict.MethodNotAllowed, strict.NotFound)
 	m.Action(r.Handle)

@@ -21,70 +21,34 @@ type Status struct {
 	Message string
 }
 
-type GetResponse struct {
+type Response struct {
 	Status
-	Results interface{}
+	Length int
+	Result interface{}
 }
 
-// XGetError sends an error message back to the client.
-func GetError(r render.Render, message string) {
-	result := GetResponse{Status{
-		Status: "Error", Message: message}, nil}
+func Error(r render.Render, message string) {
+	result := Status{Status: "Error", Message: message}
 	r.JSON(http.StatusBadRequest, result)
 }
 
 // XGetNotFound sends a 404 message back to the client.
-func GetNotFound(r render.Render) {
-	status := Status{
-		Status: "Error", Message: "Resource not found"}
+func ResourceNotFound(r render.Render) {
+	status := Status{Status: "Error", Message: "Resource not found"}
 	r.JSON(http.StatusNotFound, status)
 }
 
-// XGetOK sends the result back to the client.
-func GetOK(r render.Render, data interface{}) {
-	result := GetResponse{Status{
-		Status: "OK", Message: ""}, data}
+// XCreateOK sends the result back to the client.
+func OKStatusPlusData(r render.Render, data interface{}, length int) {
+	result := Response{
+		Status: Status{Status: "OK", Message: ""},
+		Result: data,
+		Length: length}
 	r.JSON(http.StatusOK, result)
-}
-
-// XCreateError sends an error message back to the client.
-func CreateError(r render.Render, message string) {
-	result := GetResponse{Status{
-		Status: "Error", Message: message}, nil}
-	r.JSON(http.StatusBadRequest, result)
 }
 
 // XCreateOK sends the result back to the client.
-func CreateOK(r render.Render, data interface{}) {
-	result := GetResponse{Status{
-		Status: "OK", Message: ""}, data}
-	r.JSON(http.StatusOK, result)
-}
-
-// XModifyError sends an error message back to the client.
-func ModifyError(r render.Render, message string) {
-	result := GetResponse{Status{
-		Status: "Error", Message: message}, nil}
-	r.JSON(http.StatusBadRequest, result)
-}
-
-// XModifyOK sends the result back to the client.
-func ModifyOK(r render.Render, data interface{}) {
-	result := GetResponse{Status{
-		Status: "OK", Message: ""}, data}
-	r.JSON(http.StatusOK, result)
-}
-
-// XGetError sends an error message back to the client.
-func DeleteError(r render.Render, message string) {
-	result := GetResponse{Status{
-		Status: "Error", Message: message}, nil}
-	r.JSON(http.StatusBadRequest, result)
-}
-
-// XGetOK sends the result back to the client.
-func DeleteOK(r render.Render, message string) {
-	result := GetResponse{Status{
-		Status: "OK", Message: message}, nil}
-	r.JSON(http.StatusOK, result)
+func OKStatusOnly(r render.Render, message string) {
+	status := Status{Status: "OK", Message: message}
+	r.JSON(http.StatusOK, status)
 }

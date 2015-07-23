@@ -15,7 +15,7 @@ import (
 	"fmt"
 
 	"github.com/codewerft/platform/apiserver/accesslogs"
-	"github.com/codewerft/platform/apiserver/account"
+	"github.com/codewerft/platform/apiserver/accounts"
 	"github.com/codewerft/platform/database"
 
 	"golang.org/x/crypto/bcrypt"
@@ -25,12 +25,12 @@ import (
 // request agains a static string.
 type DefaultAuthProvider struct {
 	Name        string
-	RootAccount account.Account
+	RootAccount accounts.Account
 	Database    database.Datastore
 }
 
 // NewDefaultAuthProvider creates a new StaticAuthProvider object.
-func NewDefaultAuthProvider(ds database.Datastore, rootAccount account.Account) *DefaultAuthProvider {
+func NewDefaultAuthProvider(ds database.Datastore, rootAccount accounts.Account) *DefaultAuthProvider {
 	return &DefaultAuthProvider{Name: "MySQLAuthProvider", Database: ds, RootAccount: rootAccount}
 }
 
@@ -40,7 +40,7 @@ func (ap *DefaultAuthProvider) Auth(origin string, username string, password []b
 	var finalError error
 
 	// Search the database for a matching entry
-	db := ap.Database.Get()
+	db := ap.Database.GetDB()
 	var accountUsername, accountPassword string
 	sqlErr := db.QueryRow(`
 		SELECT username, password FROM platform_account
@@ -49,7 +49,7 @@ func (ap *DefaultAuthProvider) Auth(origin string, username string, password []b
 		bcryptErr := bcrypt.CompareHashAndPassword([]byte(accountPassword), password)
 		if bcryptErr == nil {
 			// Account authenticated successfully.
-			accesslogs.DBWriteLoginOK(ap.Database.Get(), origin, username)
+			accesslogs.DBWriteLoginOK(ap.Database.GetDB(), origin, username)
 			return nil
 		}
 		finalError = bcryptErr
@@ -64,7 +64,7 @@ func (ap *DefaultAuthProvider) Auth(origin string, username string, password []b
 			bcryptErr := bcrypt.CompareHashAndPassword([]byte(ap.RootAccount.Password), password)
 			if bcryptErr == nil {
 				// Root account authenticated successfully.
-				accesslogs.DBWriteLoginOK(ap.Database.Get(), origin, username)
+				accesslogs.DBWriteLoginOK(ap.Database.GetDB(), origin, username)
 				return nil
 			}
 			finalError = bcryptErr
@@ -74,6 +74,6 @@ func (ap *DefaultAuthProvider) Auth(origin string, username string, password []b
 	}
 
 	// Neither datbase nor root account authentication was successfull.
-	accesslogs.DBWriteLoginError(ap.Database.Get(), origin, username, finalError.Error())
+	accesslogs.DBWriteLoginError(ap.Database.GetDB(), origin, username, finalError.Error())
 	return errors.New("Authentication failed.")
 }

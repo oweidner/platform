@@ -8,24 +8,27 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package organizations
+package organisations
 
 import (
-	"net/http"
+	"github.com/codewerft/platform/apiserver/responses"
+	"github.com/codewerft/platform/database"
 
-	"codewerft.net/ohoi/apiserver/storage"
 	"github.com/gavv/martini-render"
+	"github.com/go-martini/martini"
 )
 
-type ModifyOrganizationRequest struct {
-	Name string `json:"name" binding:"required"`
-}
+// Create inserts a new object in the database.
+func Create(r render.Render, params martini.Params, db database.Datastore, data Organisation) {
 
-type ModifyOrganizationResponse struct {
-	ID int `json:"id" binding:"required"`
-}
+	db.GetDBMap().AddTableWithName(Organisation{}, "platform_organisation").SetKeys(true, "id")
 
-func ModifyOrganization(req *http.Request, r render.Render, ds storage.Datastore) {
-
-	r.JSON(http.StatusOK, "")
+	// Store the object in the database. In case the
+	// database operation fails, an error response is sent back to the caller.
+	err := db.GetDBMap().Insert(&data)
+	if err != nil {
+		responses.Error(r, err.Error())
+		return
+	}
+	responses.OKStatusPlusData(r, data, 1)
 }

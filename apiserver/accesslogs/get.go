@@ -36,22 +36,22 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 		var err error
 		logID, err = strconv.ParseInt(params["p1"], 10, 64)
 		if err != nil {
-			responses.GetError(r, fmt.Sprintf("Invalid Log ID: %v", logID))
+			responses.Error(r, fmt.Sprintf("Invalid Log ID: %v", logID))
 			return
 		}
 	}
 	// Retrieve the (list of) access logs from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
-	logs, err := DBGetLogs(db.Get(), logID, -1)
+	logs, err := DBGetLogs(db.GetDB(), logID, -1)
 	if err != nil {
-		responses.GetError(r, err.Error())
+		responses.Error(r, err.Error())
 		return
 	}
 
 	// Return the list of logs or a 404 if the log wasn't found.
 	if logID != -1 && len(logs) < 1 {
-		responses.GetNotFound(r)
+		responses.ResourceNotFound(r)
 	} else {
-		responses.GetOK(r, logs)
+		responses.OKStatusPlusData(r, logs, len(logs))
 	}
 }

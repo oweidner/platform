@@ -11,19 +11,25 @@
 package utils
 
 import (
+	"fmt"
 	"strconv"
-
-	"codewerft.net/ohoi/apiserver/admin/apiserver/responses"
-	"github.com/gavv/martini-render"
 )
 
-// StringToInt64 converts a string to 64-bit integer nubmer. If the
+// ParseResourceID converts a string to 64-bit integer nubmer. If the
 // conversion was successful, the int64 number is returned. If not,
 // an error response is sent back to the caller.
-func StringToInt64(r render.Render, number string) int64 {
-	accountID, err := strconv.ParseInt(number, 10, 64)
-	if err != nil {
-		responses.GetError(r, "Invalid AccountID.")
+func ParseResourceID(idString string) (int64, error) {
+	// planID is either -1 if no plan ID was provided or > 0 otherwise.
+	var theID int64 = -1
+
+	// Convert the ID string to a 64-bit integer. In case the conversion
+	// fails, an error response is sent back to the caller.
+	if idString != "" {
+		var err error
+		theID, err = strconv.ParseInt(idString, 10, 64)
+		if err != nil {
+			return theID, fmt.Errorf("Invalid resource ID: %v", idString)
+		}
 	}
-	return accountID
+	return theID, nil
 }

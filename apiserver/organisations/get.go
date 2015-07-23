@@ -8,77 +8,56 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package orgs
+package organisations
 
 import (
-	"database/sql"
-	"fmt"
-	"strconv"
+	"net/http"
 
 	"github.com/codewerft/platform/apiserver/responses"
+	"github.com/codewerft/platform/apiserver/utils"
 	"github.com/codewerft/platform/database"
 
 	"github.com/gavv/martini-render"
 	"github.com/go-martini/martini"
 )
 
-// ModifyOrgRequest is the object that is expected by the
-// Modify() function.
-type ModifyOrgRequest struct {
-	Orgname string
-	Name    string
-	Email   string
-}
-
-// Modify modifies a org object in the database.
+// List returns the list of available resources.
 //
-func Modify(r render.Render, params martini.Params, db database.Datastore, data ModifyOrgRequest) {
+func List(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
 
-	// orgID is either -1 if no orgm ID was provided or > 0 otherwise.
-	var orgID int64 = -1
+	db.GetDBMap().AddTableWithName(Organisation{}, "platform_organisation").SetKeys(true, "id")
 
-	// Convert the org ID string to a 64-bit integer. In case the conversion
-	// fails, an error response is sent back to the caller.
-	if params["p1"] != "" {
-		var err error
-		orgID, err = strconv.ParseInt(params["p1"], 10, 64)
-		if err != nil {
-			responses.ModifyError(r, fmt.Sprintf("Invalid Organisation ID: %v", orgID))
-			return
-		}
-	}
-	// Update the org object in the database. In case the
+	// Retreive the requested resource from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
-	modifiedOrg, err := DBModifyOrg(db.Get(), orgID, data)
+	var organisations OrganisationList
+	_, err := db.GetDBMap().Select(&organisations, "SELECT * FROM platform_organisation ORDER BY id")
 	if err != nil {
-		responses.ModifyError(r, err.Error())
+		responses.Error(r, err.Error())
 		return
 	}
-
-	// Return the modified org.
-	responses.ModifyOK(r, modifiedOrg)
+	responses.OKStatusPlusData(r, organisations, len(organisations))
 }
 
-// DBModifyOrg modifies a Account object in the database.
+// Get retrieves one or more resource objects from the database and
+// sends them back to caller.
 //
-func DBModifyOrg(db *sql.DB, orgID int64, data ModifyOrgRequest) (OrgList, error) {
+func Get(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
 
-	stmt, err := db.Prepare(`
-		UPDATE platform_organisation SET orgname=?, name=?, email=? WHERE id=?`)
-	if err != nil {
-		return nil, err
+	db.GetDBMap().AddTableWithName(Organisation{}, "platform_account").SetKeys(true, "id")
+
+	// Parse the resource ID into an int64
+	resourceID, parseError := utils.ParseResourceID(params["p1"])
+	if parseError != nil {
+		responses.Error(r, parseError.Error())
 	}
 
-	_, err = stmt.Exec(data.Orgname, data.Name, data.Email, orgID)
+	// Retreive the list of all resources from the database. In case the
+	// database operation fails, an error response is sent back to the caller.
+	var organisation Organisation
+	err := db.GetDBMap().SelectOne(&organisation, "SELECT * FROM platform_organisation where id=?", resourceID)
 	if err != nil {
-		return nil, err
+		responses.Error(r, err.Error())
+		return
 	}
-
-	// Retrieve the modified object from the database and return it
-	account, err := DBGetOrgs(db, orgID)
-	if err != nil {
-		return nil, err
-	}
-
-	return account, nil
+	responses.OKStatusPlusData(r, organisation, 1)
 }
