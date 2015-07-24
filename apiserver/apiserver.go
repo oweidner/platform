@@ -18,7 +18,9 @@ import (
 	"github.com/codewerft/platform/logging"
 
 	"github.com/codewerft/platform/apiserver/accounts"
+	"github.com/codewerft/platform/apiserver/accounts/accountpassword"
 	"github.com/codewerft/platform/apiserver/accounts/accountplans"
+	"github.com/codewerft/platform/apiserver/accounts/accountroles"
 	"github.com/codewerft/platform/apiserver/organisations"
 	"github.com/codewerft/platform/apiserver/organisations/orgplans"
 
@@ -165,17 +167,30 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 		JWTAuth(authEnabled),
 		accesslogs.Get)
 
-	// Defines /resources/* resources
+	// Defines /accounts/* resources
 	//
 	AddDefaultResource(r, fmt.Sprintf("/%v/accounts", prefixPath), "p1", authEnabled,
 		accounts.List, accounts.Get, accounts.Delete, accounts.Create, accounts.Modify,
 		accounts.Account{})
 
-	// Defines /organisations/*/plans resources
+	// Defines /accounts/*/password resources
+	//
+	r.Post(fmt.Sprintf("/%v/accounts/:p1/password", prefixPath),
+		strict.Accept("application/json", "text/html"),
+		binding.Bind(accountpassword.AccountPassword{}),
+		JWTAuth(authEnabled), accountpassword.Set)
+
+	// Defines /accounts/*/plans resources
 	//
 	AddDefaultResource(r, fmt.Sprintf("/%v/accounts/:p1/plans", prefixPath), "p2", authEnabled,
 		accountplans.List, accountplans.Get, nil, accountplans.Create, nil,
 		accountplans.AccountPlanAssoc{})
+
+	// Defines /accounts/*/roles resources
+	//
+	AddDefaultResource(r, fmt.Sprintf("/%v/accounts/:p1/roles", prefixPath), "p2", authEnabled,
+		accountroles.List, accountroles.Get, nil, accountroles.Create, nil,
+		accountroles.AccountOrganisationRole{})
 
 	// Defines /organisations/* resources
 	//

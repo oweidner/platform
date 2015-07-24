@@ -55,12 +55,14 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 	resourceID, parseError := utils.ParseResourceID(params["p1"])
 	if parseError != nil {
 		responses.Error(r, parseError.Error())
+		return
 	}
 
 	// Parse the resource ID into an int64
 	planID, parseError := utils.ParseResourceID(params["p2"])
 	if parseError != nil {
 		responses.Error(r, parseError.Error())
+		return
 	}
 
 	// Retreive the list of all resources from the database. In case the

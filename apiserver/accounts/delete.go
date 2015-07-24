@@ -42,6 +42,5 @@ func Delete(req *http.Request, params martini.Params, r render.Render, db databa
 		return
 	}
 
-	// Return the modified plan.
 	responses.OKStatusOnly(r, "Resource deleted")
 }
