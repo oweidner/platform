@@ -10,7 +10,9 @@
 
 package accountpassword
 
+import "gopkg.in/guregu/null.v2"
+
 // TODO: document me
 type AccountPassword struct {
-	Password string `db:"string"`
+	Password null.String `db:"string"`
 }

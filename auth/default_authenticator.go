@@ -60,7 +60,7 @@ func (ap *DefaultAuthProvider) Auth(origin string, username string, password []b
 
 	// Account wasn't found in the database. Let's check if it's the root account.
 	if accountUsername == "" {
-		if username == ap.RootAccount.Username {
+		if username == ap.RootAccount.Username.String {
 			bcryptErr := bcrypt.CompareHashAndPassword([]byte(ap.RootAccount.Password), password)
 			if bcryptErr == nil {
 				// Root account authenticated successfully.

@@ -15,6 +15,8 @@ import (
 	"net/http"
 	"time"
 
+	"gopkg.in/guregu/null.v2"
+
 	"github.com/codewerft/platform/apiserver/accounts"
 	"github.com/codewerft/platform/auth"
 	"github.com/codewerft/platform/database"
@@ -107,10 +109,10 @@ func GetSelf(req *http.Request, params martini.Params, r render.Render, db datab
 	// Create a 'fake' admin account
 	obj := accounts.Account{
 		ID:           1,
-		Firstname:    "Platform",
-		Lastname:     "Superuser",
-		ContactEmail: "platform.codewerft.net",
-		Username:     user.(string),
+		Firstname:    null.StringFrom("Platform"),
+		Lastname:     null.StringFrom("Superuser"),
+		ContactEmail: null.StringFrom("platform.codewerft.net"),
+		Username:     null.StringFrom(user.(string)),
 		Roles:        []string{"admin"}}
 
 	type Account struct {

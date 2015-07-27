@@ -21,8 +21,10 @@ import (
 	"github.com/codewerft/platform/apiserver/accounts/accountpassword"
 	"github.com/codewerft/platform/apiserver/accounts/accountplans"
 	"github.com/codewerft/platform/apiserver/accounts/accountroles"
+	"github.com/codewerft/platform/apiserver/accounts/accountstatus"
 	"github.com/codewerft/platform/apiserver/organisations"
 	"github.com/codewerft/platform/apiserver/organisations/orgplans"
+	"github.com/codewerft/platform/apiserver/organisations/orgstatus"
 
 	"github.com/codewerft/platform/apiserver/plans"
 	"github.com/codewerft/platform/apiserver/roles"
@@ -180,6 +182,13 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 		binding.Bind(accountpassword.AccountPassword{}),
 		JWTAuth(authEnabled), accountpassword.Set)
 
+	// Defines /accounts/*/status resources
+	//
+	r.Post(fmt.Sprintf("/%v/accounts/:p1/status", prefixPath),
+		strict.Accept("application/json", "text/html"),
+		binding.Bind(accountstatus.AccountStatus{}),
+		JWTAuth(authEnabled), accountstatus.Set)
+
 	// Defines /accounts/*/plans resources
 	//
 	AddDefaultResource(r, fmt.Sprintf("/%v/accounts/:p1/plans", prefixPath), "p2", authEnabled,
@@ -197,6 +206,13 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 	AddDefaultResource(r, fmt.Sprintf("/%v/organisations", prefixPath), "p1", authEnabled,
 		organisations.List, organisations.Get, organisations.Delete, organisations.Create, organisations.Modify,
 		organisations.Organisation{})
+
+	// Defines /organisations/*/status resources
+	//
+	r.Post(fmt.Sprintf("/%v/organisations/:p1/status", prefixPath),
+		strict.Accept("application/json", "text/html"),
+		binding.Bind(orgstatus.OrganisationStatus{}),
+		JWTAuth(authEnabled), orgstatus.Set)
 
 	// Defines /organisations/*/plans resources
 	//

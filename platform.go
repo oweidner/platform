@@ -28,6 +28,8 @@ import (
 	"github.com/codewerft/platform/logging"
 	"github.com/go-martini/martini"
 	"golang.org/x/crypto/bcrypt"
+
+	"gopkg.in/guregu/null.v2"
 )
 
 var (
@@ -80,9 +82,9 @@ func New(configFile *string) *Platform {
 	rootAccount := accounts.Account{}
 	pwdHash1, _ := bcrypt.GenerateFromPassword([]byte(cfg.Server.AdminPassword), 0)
 	rootAccount = accounts.Account{
-		Firstname: "Root",
-		Lastname:  "Admin Account",
-		Username:  cfg.Server.AdminAccount,
+		Firstname: null.StringFrom("Root"),
+		Lastname:  null.StringFrom("Admin Account"),
+		Username:  null.StringFrom(cfg.Server.AdminAccount),
 		Password:  string(pwdHash1)}
 	// Load the JWT __PRIVATE__ key from the path / filename defined in
 	// the config file.

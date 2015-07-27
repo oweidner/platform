@@ -30,7 +30,7 @@ func Create(r render.Render, params martini.Params, db database.Datastore, data 
 		responses.Error(r, parseError.Error())
 	}
 
-	if accountID != data.AccountID {
+	if accountID != data.AccountID.Int64 {
 		responses.Error(r, "accountID != data.AccountID")
 		return
 	}

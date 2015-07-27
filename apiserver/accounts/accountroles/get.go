@@ -37,7 +37,7 @@ func List(req *http.Request, params martini.Params, r render.Render, db database
 	// Retreive the requested resource from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
 	var roles AccountOrganisationRoleList
-	_, err := db.GetDBMap().Select(&roles, fmt.Sprintf("SELECT * FROM %s WHERE account_id=?", SQLTableName), resourceID)
+	_, err := db.GetDBMap().Select(&roles, "SELECT * FROM platform_account_organisation_role WHERE account_id=?", resourceID)
 	if err != nil {
 		responses.Error(r, err.Error())
 		return

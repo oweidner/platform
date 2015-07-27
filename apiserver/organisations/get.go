@@ -30,7 +30,7 @@ func List(req *http.Request, params martini.Params, r render.Render, db database
 	// Retreive the requested resource from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
 	var organisations OrganisationList
-	_, err := db.GetDBMap().Select(&organisations, "SELECT * FROM platform_organisation ORDER BY id")
+	_, err := db.GetDBMap().Select(&organisations, "SELECT * FROM platform_organisation WHERE _deleted=0 ORDER BY id")
 	if err != nil {
 		responses.Error(r, err.Error())
 		return
@@ -54,7 +54,7 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 	// Retreive the list of all resources from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
 	var organisation Organisation
-	err := db.GetDBMap().SelectOne(&organisation, "SELECT * FROM platform_organisation where id=?", resourceID)
+	err := db.GetDBMap().SelectOne(&organisation, "SELECT * FROM platform_organisation WHERE _deleted=0 AND id=?", resourceID)
 	if err != nil {
 		responses.Error(r, err.Error())
 		return

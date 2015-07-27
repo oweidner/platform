@@ -14,9 +14,9 @@ import "gopkg.in/guregu/null.v2"
 
 // TODO: document me
 type AccountPlanAssoc struct {
-	ID              int64       `db:"id"`
-	AccountID       int64       `db:"account_id"`
-	PlanID          int64       `db:"plan_id"`
+	ID              null.Int    `db:"id"`
+	AccountID       null.Int    `db:"account_id"`
+	PlanID          null.Int    `db:"plan_id"`
 	SignupDate      null.String `db:"signup_date"`
 	TerminationDate null.String `db:"termination_date"`
 	Terminated      null.Bool   `db:"terminated"`

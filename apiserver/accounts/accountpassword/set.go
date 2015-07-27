@@ -29,14 +29,14 @@ func Set(r render.Render, params martini.Params, db database.Datastore, data Acc
 		responses.Error(r, parseError.Error())
 	}
 
-	if len(data.Password) < 8 {
+	if len(data.Password.String) < 8 {
 		responses.Error(r, "Passwords need to be at least 8 characters long.")
 		return
 	}
 
 	// Create a bcrypt hash from the password as we don't want to store
 	// plain-text passwords in the database
-	pwdHash, bcryptError := bcrypt.GenerateFromPassword([]byte(data.Password), 0)
+	pwdHash, bcryptError := bcrypt.GenerateFromPassword([]byte(data.Password.String), 0)
 	if bcryptError != nil {
 		responses.Error(r, bcryptError.Error())
 		return

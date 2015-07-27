@@ -34,7 +34,7 @@ func Delete(req *http.Request, params martini.Params, r render.Render, db databa
 
 	// Delete the plan object from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
-	_, err := db.GetDBMap().Exec("DELETE FROM platform_plans WHERE id=?", resourceID)
+	_, err := db.GetDBMap().Exec("UPDATE platform_plan SET _deleted=1 WHERE id=?", resourceID)
 	if err != nil {
 		responses.Error(r, err.Error())
 		return

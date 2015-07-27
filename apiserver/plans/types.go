@@ -15,6 +15,7 @@ import "gopkg.in/guregu/null.v2"
 // Plan represents a Plan object as it exists in the database.
 type Plan struct {
 	ID              int64       `db:"id"`
+	Deleted         null.Bool   `db:"_deleted"`
 	Name            string      `db:"name"`
 	Description     null.String `db:"description"`
 	Parameters      null.String `db:"parameters"`

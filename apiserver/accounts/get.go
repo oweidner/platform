@@ -30,7 +30,7 @@ func List(req *http.Request, params martini.Params, r render.Render, db database
 	// Retreive the requested resource from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
 	var accounts AccountList
-	_, err := db.GetDBMap().Select(&accounts, "SELECT * FROM platform_account ORDER BY id")
+	_, err := db.GetDBMap().Select(&accounts, "SELECT * FROM platform_account WHERE _deleted=0 ORDER BY id")
 	if err != nil {
 		responses.Error(r, err.Error())
 		return
@@ -38,7 +38,7 @@ func List(req *http.Request, params martini.Params, r render.Render, db database
 
 	// "black-out" the passwords
 	for idx := range accounts {
-		accounts[idx].Password = "***"
+		accounts[idx].Password = "*****"
 	}
 
 	responses.OKStatusPlusData(r, accounts, len(accounts))
@@ -60,7 +60,7 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 	// Retreive the list of all resources from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
 	var account Account
-	err := db.GetDBMap().SelectOne(&account, "SELECT * FROM platform_account where id=?", resourceID)
+	err := db.GetDBMap().SelectOne(&account, "SELECT * FROM platform_account WHERE _deleted=0 AND id=?", resourceID)
 	if err != nil {
 		responses.Error(r, err.Error())
 		return

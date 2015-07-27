@@ -28,7 +28,7 @@ func List(req *http.Request, params martini.Params, r render.Render, db database
 	// database operation fails, an error response is sent back to the caller.
 	var roles RoleList
 
-	_, err := db.GetDBMap().Select(&roles, "SELECT * FROM platform_role ORDER BY id")
+	_, err := db.GetDBMap().Select(&roles, "SELECT * FROM platform_role WHERE _deleted=0 ORDER BY id")
 	if err != nil {
 		responses.Error(r, err.Error())
 		return
@@ -51,7 +51,7 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 	// Retreive the (list of) plans from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
 	var role Role
-	err := db.GetDBMap().SelectOne(&role, "SELECT * FROM platform_role where id=?", resourceID)
+	err := db.GetDBMap().SelectOne(&role, "SELECT * FROM platform_role WHERE _deleted=0 AND id=?", resourceID)
 	if err != nil {
 		responses.Error(r, err.Error())
 		return

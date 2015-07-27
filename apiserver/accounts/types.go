@@ -16,12 +16,14 @@ import "gopkg.in/guregu/null.v2"
 // in the database.
 type Account struct {
 	ID                int64       `db:"id"`
+	Deleted           null.Bool   `db:"_deleted"`
 	Disabled          null.Bool   `db:"disabled"`
-	Username          string      `db:"username"`
+	Username          null.String `db:"username"`
 	Password          string      `db:"password"`
-	Firstname         string      `db:"firstname"`
-	Lastname          string      `db:"lastname"`
-	ContactEmail      string      `db:"contact_email"`
+	Firstname         null.String `db:"firstname"`
+	Lastname          null.String `db:"lastname"`
+	Title             null.String `db:"title"`
+	ContactEmail      null.String `db:"contact_email"`
 	ContactPhone      null.String `db:"contact_phone"`
 	AddressStreet1    null.String `db:"address_street_1"`
 	AddressStreet2    null.String `db:"address_street_2"`
@@ -29,8 +31,8 @@ type Account struct {
 	AddressCity       null.String `db:"address_city"`
 	AddressCountry    null.String `db:"address_country"`
 	BankAccountHolder null.String `db:"bank_account_holder"`
-	BankIBAN          null.String `db:"bank_IBAN"`
-	BankBIC           null.String `db:"bank_BIC"`
+	BankIBAN          null.String `db:"bank_iban"`
+	BankBIC           null.String `db:"bank_bic"`
 	BankName          null.String `db:"bank_name"`
 	Roles             []string    `db:"-"`
 }
