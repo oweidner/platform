@@ -11,7 +11,6 @@
 package accountroles
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/codewerft/platform/apiserver/responses"
@@ -25,8 +24,6 @@ import (
 // List returns the list of available resources.
 //
 func List(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
-
-	db.GetDBMap().AddTableWithName(AccountOrganisationRole{}, SQLTableName).SetKeys(true, "id")
 
 	// Parse the resource ID into an int64
 	resourceID, parseError := utils.ParseResourceID(params["p1"])
@@ -50,8 +47,6 @@ func List(req *http.Request, params martini.Params, r render.Render, db database
 //
 func Get(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
 
-	db.GetDBMap().AddTableWithName(AccountOrganisationRole{}, SQLTableName).SetKeys(true, "id")
-
 	// Parse the resource ID into an int64
 	resourceID, parseError := utils.ParseResourceID(params["p1"])
 	if parseError != nil {
@@ -69,7 +64,7 @@ func Get(req *http.Request, params martini.Params, r render.Render, db database.
 	// Retreive the list of all resources from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
 	var role AccountOrganisationRole
-	err := db.GetDBMap().SelectOne(&role, fmt.Sprintf("SELECT * FROM %s WHERE account_id=? AND id=?", SQLTableName), resourceID, roleID)
+	err := db.GetDBMap().SelectOne(&role, "SELECT * FROM platform_account_organisation_role WHERE account_id=? AND id=?", resourceID, roleID)
 	if err != nil {
 		responses.Error(r, err.Error())
 		return

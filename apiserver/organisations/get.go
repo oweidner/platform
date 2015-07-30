@@ -25,8 +25,6 @@ import (
 //
 func List(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
 
-	db.GetDBMap().AddTableWithName(Organisation{}, "platform_organisation").SetKeys(true, "id")
-
 	// Retreive the requested resource from the database. In case the
 	// database operation fails, an error response is sent back to the caller.
 	var organisations OrganisationList
@@ -42,8 +40,6 @@ func List(req *http.Request, params martini.Params, r render.Render, db database
 // sends them back to caller.
 //
 func Get(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
-
-	db.GetDBMap().AddTableWithName(Organisation{}, "platform_account").SetKeys(true, "id")
 
 	// Parse the resource ID into an int64
 	resourceID, parseError := utils.ParseResourceID(params["p1"])

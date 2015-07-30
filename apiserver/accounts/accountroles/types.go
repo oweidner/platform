@@ -10,9 +10,6 @@
 
 package accountroles
 
-// SQLTableName holds the table name for the account roles
-var SQLTableName = "platform_account_organisation_role"
-
 // AccountOrganisationRole represents the role of an account within an
 // Organisation.
 type AccountOrganisationRole struct {

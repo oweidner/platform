@@ -21,8 +21,6 @@ import (
 // Create inserts a new object in the database.
 func Create(r render.Render, params martini.Params, db database.Datastore, data OrganisationPlanAssoc) {
 
-	db.GetDBMap().AddTableWithName(OrganisationPlanAssoc{}, "platform_organisation_plan_assoc").SetKeys(true, "id")
-
 	// Store the object in the database. In case the
 	// database operation fails, an error response is sent back to the caller.
 	err := db.GetDBMap().Insert(&data)

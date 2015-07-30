@@ -22,8 +22,6 @@ import (
 // Create inserts a new object in the database.
 func Create(r render.Render, params martini.Params, db database.Datastore, data AccountOrganisationRole) {
 
-	db.GetDBMap().AddTableWithName(AccountOrganisationRole{}, SQLTableName).SetKeys(true, "id")
-
 	// Parse the resource ID into an int64
 	accountID, parseError := utils.ParseResourceID(params["p1"])
 	if parseError != nil {

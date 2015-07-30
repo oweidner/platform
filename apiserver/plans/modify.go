@@ -23,8 +23,6 @@ import (
 //
 func Modify(r render.Render, params martini.Params, db database.Datastore, data Plan) {
 
-	db.GetDBMap().AddTableWithName(Plan{}, "platform_plan").SetKeys(true, "id")
-
 	// Parse the resource ID into an int64
 	resourceID, parseError := utils.ParseResourceID(params["p1"])
 	if parseError != nil {

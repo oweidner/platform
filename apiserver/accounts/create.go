@@ -22,8 +22,6 @@ import (
 // Create inserts a new object in the database.
 func Create(r render.Render, params martini.Params, db database.Datastore, data Account) {
 
-	db.GetDBMap().AddTableWithName(Account{}, "platform_account").SetKeys(true, "id")
-
 	// Create a bcrypt hash from the password as we don't want to store
 	// plain-text passwords in the database
 	pwdHash, bcryptError := bcrypt.GenerateFromPassword([]byte(data.Password), 0)

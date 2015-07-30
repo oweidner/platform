@@ -17,9 +17,12 @@ type OrganisationPlanAssoc struct {
 	ID              int64       `db:"id"`
 	OrganisationID  int64       `db:"organisation_id"`
 	PlanID          int64       `db:"plan_id"`
-	SignupDate      null.String `db:"signup_date"`
+	PlanName        null.String `db:"plan_name"`
+	StartDate       null.String `db:"start_Date"`
+	EndDate         null.String `db:"end_date"`
 	TerminationDate null.String `db:"termination_date"`
-	Terminated      null.Bool   `db:"terminated"`
+
+	Terminated null.Bool `db:"terminated"`
 }
 
 // OrganisationPlanAssoc represents a list of OrganisationPlanAssoc object.

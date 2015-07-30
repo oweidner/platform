@@ -118,6 +118,17 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 	jwtExpiration = expiration
 	logging.Log.Info("Server config: JWT expiration set to %v hours", expiration)
 
+	// Configure GORP
+	ds.GetDBMap().AddTableWithName(accounts.Account{}, "platform_account").SetKeys(true, "id")
+	ds.GetDBMap().AddTableWithName(accountroles.AccountOrganisationRole{}, "platform_account_organisation_role").SetKeys(true, "id")
+	ds.GetDBMap().AddTableWithName(accountplans.AccountPlanAssoc{}, "platform_account_plan_assoc").SetKeys(true, "id")
+
+	ds.GetDBMap().AddTableWithName(organisations.Organisation{}, "platform_organisation").SetKeys(true, "id")
+	ds.GetDBMap().AddTableWithName(orgplans.OrganisationPlanAssoc{}, "platform_organisation_plan_assoc").SetKeys(true, "id")
+
+	ds.GetDBMap().AddTableWithName(plans.Plan{}, "platform_plan").SetKeys(true, "id")
+	ds.GetDBMap().AddTableWithName(roles.Role{}, "platform_role").SetKeys(true, "id")
+
 	// Setup middleware
 	var m *martini.Martini
 

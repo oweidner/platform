@@ -26,8 +26,6 @@ import (
 //
 func Delete(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
 
-	db.GetDBMap().AddTableWithName(Account{}, "platform_account").SetKeys(true, "id")
-
 	// Parse the resource ID into an int64
 	resourceID, parseError := utils.ParseResourceID(params["p1"])
 	if parseError != nil {

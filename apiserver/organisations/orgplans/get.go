@@ -25,18 +25,17 @@ import (
 //
 func List(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
 
-	db.GetDBMap().AddTableWithName(OrganisationPlanAssoc{}, "platform_organisation_plan_assoc").SetKeys(true, "id")
-
 	// Parse the resource ID into an int64
 	resourceID, parseError := utils.ParseResourceID(params["p1"])
 	if parseError != nil {
 		responses.Error(r, parseError.Error())
 	}
 
-	// Retreive the requested resource from the database. In case the
-	// database operation fails, an error response is sent back to the caller.
 	var plans OrganisationPlanAssocList
-	_, err := db.GetDBMap().Select(&plans, "SELECT * FROM platform_organisation_plan_assoc WHERE organisation_id=?", resourceID)
+	_, err := db.GetDBMap().Select(&plans, `
+		SELECT a.id, a.organisation_id, a.plan_id, p.name AS plan_name, a.start_date, a.end_date, a.termination_date, a.terminated
+		FROM platform_organisation_plan_assoc a, platform_plan p
+		WHERE a.plan_id = p.id AND a.organisation_id=?`, resourceID)
 	if err != nil {
 		responses.Error(r, err.Error())
 		return
@@ -48,8 +47,6 @@ func List(req *http.Request, params martini.Params, r render.Render, db database
 // sends them back to caller.
 //
 func Get(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
-
-	db.GetDBMap().AddTableWithName(OrganisationPlanAssoc{}, "platform_organisation_plan_assoc").SetKeys(true, "id")
 
 	// Parse the resource ID into an int64
 	resourceID, parseError := utils.ParseResourceID(params["p1"])

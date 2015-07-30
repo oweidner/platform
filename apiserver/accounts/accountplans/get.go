@@ -25,8 +25,6 @@ import (
 //
 func List(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
 
-	db.GetDBMap().AddTableWithName(AccountPlanAssoc{}, "platform_account_plan_assoc").SetKeys(true, "id")
-
 	// Parse the resource ID into an int64
 	resourceID, parseError := utils.ParseResourceID(params["p1"])
 	if parseError != nil {
@@ -48,8 +46,6 @@ func List(req *http.Request, params martini.Params, r render.Render, db database
 // sends them back to caller.
 //
 func Get(req *http.Request, params martini.Params, r render.Render, db database.Datastore) {
-
-	db.GetDBMap().AddTableWithName(AccountPlanAssoc{}, "platform_account_plan_assoc").SetKeys(true, "id")
 
 	// Parse the resource ID into an int64
 	resourceID, parseError := utils.ParseResourceID(params["p1"])
