@@ -114,12 +114,12 @@ func CheckConfig(config *Config, filename string, basepath string) error {
 	if path.IsAbs(config.JWT.PrivateKey) == false {
 		config.JWT.PrivateKey = path.Join(basepath, config.JWT.PrivateKey)
 	}
-	// if path.IsAbs(config.TLS.KeyFile) == false {
-	// 	config.TLS.KeyFile = path.Join(basepath, config.TLS.KeyFile)
-	// }
-	// if path.IsAbs(config.TLS.CertFile) == false {
-	// 	config.TLS.CertFile = path.Join(basepath, config.TLS.CertFile)
-	// }
+	if path.IsAbs(config.TLS.KeyFile) == false {
+		config.TLS.KeyFile = path.Join(basepath, config.TLS.KeyFile)
+	}
+	if path.IsAbs(config.TLS.CertFile) == false {
+		config.TLS.CertFile = path.Join(basepath, config.TLS.CertFile)
+	}
 
 	return nil
 }
