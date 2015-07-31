@@ -11,16 +11,15 @@
 package apiserver
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
 	"gopkg.in/guregu/null.v2"
 
 	"github.com/codewerft/platform/apiserver/accounts"
+	"github.com/codewerft/platform/apiserver/responses"
 	"github.com/codewerft/platform/auth"
 	"github.com/codewerft/platform/database"
-	"github.com/codewerft/platform/logging"
 	"github.com/go-martini/martini"
 
 	"github.com/dgrijalva/jwt-go"
@@ -47,9 +46,8 @@ func Auth(u AuthRequest, a auth.Authenticator, r render.Render, req *http.Reques
 	originIP := req.RemoteAddr
 
 	// Authenticate the account with the password provided
-	err := a.Auth(originIP, u.Username, []byte(u.Password))
+	data, err := a.Auth(originIP, u.Username, []byte(u.Password))
 	if err != nil {
-		logging.Log.Error(fmt.Sprintf("[auth] Authentication failed for account %v", u.Username))
 		r.JSON(http.StatusUnauthorized,
 			ErrorResponse{
 				Code:    http.StatusUnauthorized,
@@ -57,13 +55,11 @@ func Auth(u AuthRequest, a auth.Authenticator, r render.Render, req *http.Reques
 		return
 	}
 
-	logging.Log.Info(fmt.Sprintf("[auth] Authentication granted to account %v", u.Username))
-
 	// Create a new JWT token
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
-	token.Claims["org"] = "ORG"       //account.Organization
-	token.Claims["user"] = u.Username //account.Username
-	token.Claims["role"] = "ROLE"     //account.Role
+	token.Claims["userid"] = data.ID     //account.Username
+	token.Claims["user"] = data.Username //account.Username
+	token.Claims["role"] = "data.Role"   //account.Role
 
 	// Expire in 60 mins
 	token.Claims["exp"] = time.Now().Add(time.Hour * time.Duration(jwtExpiration)).Unix()
@@ -103,27 +99,33 @@ func GetSelf(req *http.Request, params martini.Params, r render.Render, db datab
 		return
 	}
 
-	// Extract the username.
+	// Extract the userid.
 	user := token.Claims["user"]
+	userid := token.Claims["userid"]
 
-	// Create a 'fake' admin account
-	obj := accounts.Account{
-		ID:           1,
-		Firstname:    null.StringFrom("Platform"),
-		Lastname:     null.StringFrom("Superuser"),
-		ContactEmail: null.StringFrom("platform.codewerft.net"),
-		Username:     null.StringFrom(user.(string)),
-		Roles:        []string{"admin"}}
+	// account holds the data returned to the caller
+	var account accounts.Account
 
-	type Account struct {
-		ID           int64
-		Firstname    string
-		Lastname     string
-		ContactEmail string
-		Username     string
-		Password     string
-		Roles        []string
+	// If the UserID is 0, this is the platform admin user.
+	if userid == 0 {
+		// Create a 'fake' admin account
+		account = accounts.Account{
+			ID:           1,
+			Firstname:    null.StringFrom("Platform"),
+			Lastname:     null.StringFrom("Superuser"),
+			ContactEmail: null.StringFrom("platform.codewerft.net"),
+			Username:     null.StringFrom(user.(string)),
+			Roles:        []string{"admin"}}
+	} else {
+		// Query the database for the given UserID
+		err := db.GetDBMap().SelectOne(&account, "SELECT * FROM platform_account WHERE _deleted=0 AND id=?", userid)
+		if err != nil {
+			responses.Error(r, err.Error())
+			r.JSON(http.StatusUnauthorized, ErrorResponse{
+				Code:    http.StatusUnauthorized,
+				Message: err.Error()})
+		}
 	}
 
-	r.JSON(http.StatusOK, obj)
+	r.JSON(http.StatusOK, account)
 }

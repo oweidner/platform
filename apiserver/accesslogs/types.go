@@ -8,46 +8,24 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package main
+package accesslogs
 
 import (
-	"flag"
-	"net/http"
+	"time"
 
-	"github.com/codewerft/platform"
-	"github.com/codewerft/platform/database"
-	"github.com/gavv/martini-render"
-	"github.com/go-martini/martini"
+	"gopkg.in/guregu/null.v2"
 )
 
-type Test struct {
-	Name string
+// AccessLogEntry represents a log entry
+type AccessLogEntry struct {
+	ID        int64       `db:"id"`
+	Timestamp time.Time   `db:"timestamp"`
+	Origin    null.String `db:"origin"`
+	Level     null.String `db:"level"`
+	Event     null.String `db:"event"`
+	Username  null.String `db:"username"`
+	UserID    null.Int    `db:"user_id"`
 }
 
-// GetVersion returns the version of Codewerft Platform.
-func Tryme(r render.Render, params martini.Params, db database.Datastore) {
-	r.JSON(http.StatusOK, "{'X': 'Y'}")
-	return
-}
-
-// p is the global Platform instance.
-var p *platform.Platform
-
-func main() {
-
-	// Config file is passed via -config= flag.
-	var configFile = flag.String("config", "", "set configuration file")
-	flag.Parse()
-
-	p = platform.New(configFile)
-
-	p.AddGORPTable("tutorbox_students", "id", Test{})
-	p.Get("/test", Tryme)
-
-	// ADD APP specific routes and functions
-
-	serveError := p.Serve()
-	if serveError != nil {
-		// report the error
-	}
-}
+// AccessLogList represents a list of AccessLog objects.
+type AccessLog []AccessLogEntry

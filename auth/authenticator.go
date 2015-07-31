@@ -10,7 +10,9 @@
 
 package auth
 
+import "github.com/codewerft/platform/apiserver/accounts"
+
 // Authenticator defines the interface for all authentication providers.
 type Authenticator interface {
-	Auth(origin string, username string, password []byte) error
+	Auth(origin string, username string, password []byte) (accounts.Account, error)
 }

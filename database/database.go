@@ -40,11 +40,11 @@ type DefaultDatastore struct {
 //
 func NewDefaultDatastore(hostname string, dbname string, username string, password string) *DefaultDatastore {
 
-	var connect = fmt.Sprintf("%v:%v@%v/%v?charset=utf8&parseTime=false", username, password, hostname, dbname)
+	var connect = fmt.Sprintf("%v:%v@%v/%v?charset=utf8&parseTime=true", username, password, hostname, dbname)
 	// connectCleaned ommits the password from the string for security reasons
-	var connectCleaned = fmt.Sprintf("%v:%v@%v/%v?charset=utf8&parseTime=false", username, "***", hostname, dbname)
+	var connectCleaned = fmt.Sprintf("%v:%v@%v/%v?charset=utf8&parseTime=true", username, "***", hostname, dbname)
 
-	logging.Log.Info("Connecting to MySQL server %v", connectCleaned)
+	logging.Log.Info("Connecting to MySQL server as %v", connectCleaned)
 
 	db, err := sql.Open("mysql", connect)
 	if err != nil {

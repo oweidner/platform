@@ -75,6 +75,8 @@ Run the example server:
 $GOPATH/bin/example --config=sample.cfg
 ```
 
+Make OS X accept the certificate: http://stackoverflow.com/questions/7580508/getting-chrome-to-accept-self-signed-localhost-certificate
+
 
 ## Notes
 

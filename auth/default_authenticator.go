@@ -11,12 +11,10 @@
 package auth
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/codewerft/platform/apiserver/accesslogs"
 	"github.com/codewerft/platform/apiserver/accounts"
 	"github.com/codewerft/platform/database"
+	"gopkg.in/guregu/null.v2"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -35,45 +33,33 @@ func NewDefaultAuthProvider(ds database.Datastore, rootAccount accounts.Account)
 }
 
 // Auth implements the AuthProvider interface.
-func (ap *DefaultAuthProvider) Auth(origin string, username string, password []byte) error {
+// It authenticates a given ussername and password combination against:
+// - the admin user(s) defined in the configuration file
+// - the the account database.
+func (ap *DefaultAuthProvider) Auth(origin string, username string, password []byte) (accounts.Account, error) {
 
-	var finalError error
+	// Retreive the list of all resources from the database. In case the
+	// database operation fails, an error response is sent back to the caller.
+	var account accounts.Account
+	var userid null.Int
 
-	// Search the database for a matching entry
-	db := ap.Database.GetDB()
-	var accountUsername, accountPassword string
-	sqlErr := db.QueryRow(`
-		SELECT username, password FROM platform_account
-        WHERE username = ?`, username).Scan(&accountUsername, &accountPassword)
-	if sqlErr == nil {
-		bcryptErr := bcrypt.CompareHashAndPassword([]byte(accountPassword), password)
-		if bcryptErr == nil {
-			// Account authenticated successfully.
-			accesslogs.DBWriteLoginOK(ap.Database.GetDB(), origin, username)
-			return nil
-		}
-		finalError = bcryptErr
-
-	} else {
-		finalError = sqlErr
+	dbError := ap.Database.GetDBMap().SelectOne(&account, "SELECT * FROM platform_account WHERE _deleted=0 AND username=?", username)
+	if dbError != nil {
+		accesslogs.DBWriteLoginError(ap.Database, origin, username, dbError.Error(), userid)
+		return accounts.Account{}, dbError
 	}
 
-	// Account wasn't found in the database. Let's check if it's the root account.
-	if accountUsername == "" {
-		if username == ap.RootAccount.Username.String {
-			bcryptErr := bcrypt.CompareHashAndPassword([]byte(ap.RootAccount.Password), password)
-			if bcryptErr == nil {
-				// Root account authenticated successfully.
-				accesslogs.DBWriteLoginOK(ap.Database.GetDB(), origin, username)
-				return nil
-			}
-			finalError = bcryptErr
-		} else {
-			finalError = fmt.Errorf("Unknown username '%v'", username)
-		}
+	// user was found in he database, hence there's a userid
+	userid = null.IntFrom(account.ID)
+
+	// Compare the hashed passwords
+	bcryptErr := bcrypt.CompareHashAndPassword([]byte(account.Password), password)
+	if bcryptErr != nil {
+		accesslogs.DBWriteLoginError(ap.Database, origin, username, bcryptErr.Error(), userid)
+		return accounts.Account{}, bcryptErr
 	}
 
-	// Neither datbase nor root account authentication was successfull.
-	accesslogs.DBWriteLoginError(ap.Database.GetDB(), origin, username, finalError.Error())
-	return errors.New("Authentication failed.")
+	// Account authenticated successfully.
+	accesslogs.DBWriteLoginOK(ap.Database, origin, username, userid)
+	return account, nil
 }

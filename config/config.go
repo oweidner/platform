@@ -18,12 +18,15 @@ import (
 // The Config struct defines the structure of the configuration file.
 //
 type Config struct {
-	Server struct {
-		Listen        string `gcfg:"listen"`
-		APIPrefix     string
-		DisableAuth   bool   `gcfg:"disableauth"`
-		AdminAccount  string `gcfg:"adminaccount"`
-		AdminPassword string `gcfg:"adminpassword"`
+	SERVER struct {
+		Listen               string //`gcfg:"listen"`
+		PlatformPrefix       string
+		ApplicationPrefix    string
+		EnablePlatformAPI    bool
+		EnableApplicationAPI bool
+		DisableAuth          bool   //`gcfg:"disableauth"`
+		AdminAccount         string //`gcfg:"adminaccount"`
+		AdminPassword        string //`gcfg:"adminpassword"`
 	}
 	TLS struct {
 		EnableTLS bool
@@ -48,9 +51,14 @@ type Config struct {
 // wherever necessary.
 func CheckConfig(config *Config, filename string, basepath string) error {
 
-	// Set the default to 12 hours if JWT:Expiration is not defined.
-	if config.Server.APIPrefix == "" {
-		config.Server.APIPrefix = "platform"
+	// Set the default platform prefix.
+	if config.SERVER.PlatformPrefix == "" {
+		config.SERVER.PlatformPrefix = "platform"
+	}
+
+	// Set the default application prefix.
+	if config.SERVER.ApplicationPrefix == "" {
+		config.SERVER.ApplicationPrefix = "app"
 	}
 
 	// Return an error if TLS is enabled and cert or Key are not provided
@@ -64,18 +72,18 @@ func CheckConfig(config *Config, filename string, basepath string) error {
 
 	}
 
-	// Return an error if no Server.StorageBackend is defined.
-	if config.Server.Listen == "" {
-		return fmt.Errorf("%v: Configuration doesn't define mandatory Server.Listen", filename)
+	// Return an error if no SERVER.StorageBackend is defined.
+	if config.SERVER.Listen == "" {
+		return fmt.Errorf("%v: Configuration doesn't define mandatory SERVER.Listen", filename)
 	}
 
-	// Return an error if no Server.StorageBackend is defined.
-	if config.Server.AdminAccount == "" {
-		return fmt.Errorf("%v: Configuration doesn't define mandatory Server.AdminAccount", filename)
+	// Return an error if no SERVER.StorageBackend is defined.
+	if config.SERVER.AdminAccount == "" {
+		return fmt.Errorf("%v: Configuration doesn't define mandatory SERVER.AdminAccount", filename)
 	}
-	// Return an error if no Server.StorageBackend is defined.
-	if config.Server.AdminPassword == "" {
-		return fmt.Errorf("%v: Configuration doesn't define mandatory Server.AdminPassword", filename)
+	// Return an error if no SERVER.StorageBackend is defined.
+	if config.SERVER.AdminPassword == "" {
+		return fmt.Errorf("%v: Configuration doesn't define mandatory SERVER.AdminPassword", filename)
 	}
 
 	// Return an error if no JWT Public Key is defined.

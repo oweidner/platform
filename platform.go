@@ -26,7 +26,6 @@ import (
 	"github.com/codewerft/platform/config"
 	"github.com/codewerft/platform/database"
 	"github.com/codewerft/platform/logging"
-	"github.com/go-martini/martini"
 	"golang.org/x/crypto/bcrypt"
 
 	"gopkg.in/guregu/null.v2"
@@ -42,11 +41,10 @@ var (
 	APIVersion string
 )
 
-// Platform represents the top level application.
+// Platform represents the application.
 type Platform struct {
-	Router *martini.Router
 	Config *config.Config
-	Server *martini.Martini
+	Server *apiserver.Server
 }
 
 var ap auth.Authenticator
@@ -80,11 +78,11 @@ func New(configFile *string) *Platform {
 	// Create the root account credentials from the username and password
 	// values defined in the config file.
 	rootAccount := accounts.Account{}
-	pwdHash1, _ := bcrypt.GenerateFromPassword([]byte(cfg.Server.AdminPassword), 0)
+	pwdHash1, _ := bcrypt.GenerateFromPassword([]byte(cfg.SERVER.AdminPassword), 0)
 	rootAccount = accounts.Account{
 		Firstname: null.StringFrom("Root"),
 		Lastname:  null.StringFrom("Admin Account"),
-		Username:  null.StringFrom(cfg.Server.AdminAccount),
+		Username:  null.StringFrom(cfg.SERVER.AdminAccount),
 		Password:  string(pwdHash1)}
 	// Load the JWT __PRIVATE__ key from the path / filename defined in
 	// the config file.
@@ -111,8 +109,8 @@ func New(configFile *string) *Platform {
 
 	// Finally, we start up the Platform API server and inject the storage
 	// and authentication backend instances.
-	server := apiserver.NewServer(ds, ap, cfg.Server.APIPrefix,
-		!cfg.Server.DisableAuth,
+	server := apiserver.New(ds, ap, cfg.SERVER.PlatformPrefix,
+		!cfg.SERVER.DisableAuth, cfg.SERVER.EnablePlatformAPI,
 		jwtPrivateKey, jwtPublicKey, cfg.JWT.Expiration)
 
 	// Return the Platform handle.
@@ -121,26 +119,70 @@ func New(configFile *string) *Platform {
 
 // UnitTestServe launches the Platform HTTPS server for running the unit tests.
 func (p *Platform) UnitTestServe() (*httptest.Server, error) {
-	server := httptest.NewServer(p.Server)
+	server := httptest.NewServer(p.Server.Martini)
 	logging.Log.Info("Codewerft Platform unit test server running on %s", server.URL)
 
 	return server, nil
 }
 
+func (p *Platform) AddGORPTable(tableName string, indexName string, relType interface{}) error {
+	ds.GetDBMap().AddTableWithName(relType, tableName).SetKeys(true, indexName)
+	return nil
+}
+
+// Get adds a new HTTP GET resource to the application API
+func (p *Platform) Get(path string, handleFunc interface{}) error {
+	if p.Config.SERVER.EnableApplicationAPI == false {
+		return nil
+	}
+	p.Server.Router.Get(path, handleFunc)
+	return nil
+}
+
+// Post adds a new HTTP POST resource to the application API
+func (p *Platform) Post(path string, handleFunc interface{}, requestType interface{}) error {
+	if p.Config.SERVER.EnableApplicationAPI == false {
+		return nil
+	}
+	p.Server.Router.Post(path, handleFunc, requestType)
+	return nil
+}
+
+// Put adds a new HTTP PUT resource to the application API
+func (p *Platform) Put(path string, handleFunc interface{}, requestType interface{}) error {
+	if p.Config.SERVER.EnableApplicationAPI == false {
+		return nil
+	}
+	p.Server.Router.Put(path, handleFunc, requestType)
+	return nil
+}
+
+// Delete adds a new HTTP DELETE resource to the application API
+func (p *Platform) Delete(path string, handleFunc interface{}) error {
+	if p.Config.SERVER.EnableApplicationAPI == false {
+		return nil
+	}
+	p.Server.Router.Delete(path, handleFunc)
+	return nil
+}
+
 // Serve launches the Platform HTTP(S) server.
 func (p *Platform) Serve() error {
+
+	p.Server.Martini.Action(p.Server.Router.Handle)
+
 	// if TLS is enable in the configuration file, we start
 	// an HTTPS server with the provided X.509 certificates,
 	// otherwise, start an HTTP server.without TLS.
 	if p.Config.TLS.EnableTLS == true {
 		logging.Log.Info("HTTPS/TLS enabled. Using X.509 keypair %v and %v", p.Config.TLS.CertFile, p.Config.TLS.KeyFile)
-		logging.Log.Info("Codewerft Platform server available at https://localhost%v", p.Config.Server.Listen)
+		logging.Log.Info("Codewerft Platform server available at https://localhost%v", p.Config.SERVER.Listen)
 
 		if err := http.ListenAndServeTLS(
-			p.Config.Server.Listen,
+			p.Config.SERVER.Listen,
 			p.Config.TLS.CertFile,
 			p.Config.TLS.KeyFile,
-			p.Server); err != nil {
+			p.Server.Martini); err != nil {
 			logging.Log.Fatalf("Error starting Codewerft Platform server: %v", err)
 		}
 
@@ -149,8 +191,8 @@ func (p *Platform) Serve() error {
 		logging.Log.Warning("!! HTTPS/TLS DISABLED -- DO NOT RUN THIS SERVER IN A PRODUCTION ENVIRONMENT      !!")
 		logging.Log.Warning("***********************************************************************************")
 
-		logging.Log.Info("Codewerft Platform server available at http://localhost%v", p.Config.Server.Listen)
-		if err := http.ListenAndServe(p.Config.Server.Listen, p.Server); err != nil {
+		logging.Log.Info("Codewerft Platform server available at http://localhost%v", p.Config.SERVER.Listen)
+		if err := http.ListenAndServe(p.Config.SERVER.Listen, p.Server.Martini); err != nil {
 			logging.Log.Fatal(fmt.Sprintf("Error starting Codewerft Platform server: %v", err))
 		}
 	}

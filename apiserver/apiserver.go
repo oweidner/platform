@@ -38,16 +38,19 @@ import (
 	"github.com/martini-contrib/cors"
 )
 
-// The resource path prefix. If not blank, it requires a '/' as prefix.
-const APIPrefix = ""
+// The resource path prefixes
+const PlatformPrefix = ""
+const ApplicationPrefix = ""
+
+// The system roles
+const PlatformAdminRole = "PLATFORM_ADMIN"
+const PlatformUserRole = "PLATFORM_USER"
 
 var (
 	jwtExpiration int
 	jwtPrivateKey []byte
 	jwtPublicKey  []byte
 )
-
-type getFunc func(int) string
 
 func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string, authEnabled bool,
 	listFn interface{}, getFn interface{}, deleteFn interface{}, createFn interface{}, modifyFn interface{}, datatype interface{}) {
@@ -57,7 +60,7 @@ func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string,
 	if getFn != nil {
 		r.Get(fmt.Sprintf("%v/:%s", basePath, idPlaceholder),
 			strict.Accept("application/json", "text/html"),
-			JWTAuth(authEnabled),
+			JWTAuth(authEnabled, PlatformAdminRole),
 			getFn)
 	}
 
@@ -66,7 +69,7 @@ func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string,
 	if listFn != nil {
 		r.Get(fmt.Sprintf("%v", basePath),
 			strict.Accept("application/json", "text/html"),
-			JWTAuth(authEnabled),
+			JWTAuth(authEnabled, PlatformAdminRole),
 			listFn)
 	}
 
@@ -75,7 +78,7 @@ func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string,
 	if deleteFn != nil {
 		r.Delete(fmt.Sprintf("%v/:%s", basePath, idPlaceholder),
 			strict.Accept("application/json", "text/html"),
-			JWTAuth(authEnabled),
+			JWTAuth(authEnabled, PlatformAdminRole),
 			deleteFn)
 	}
 
@@ -85,7 +88,7 @@ func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string,
 		r.Put(fmt.Sprintf("%v", basePath),
 			strict.Accept("application/json", "text/html"),
 			binding.Bind(datatype),
-			JWTAuth(authEnabled),
+			JWTAuth(authEnabled, PlatformAdminRole),
 			createFn)
 	}
 
@@ -95,14 +98,35 @@ func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string,
 		r.Post(fmt.Sprintf("%v/:%s", basePath, idPlaceholder),
 			strict.Accept("application/json", "text/html"),
 			binding.Bind(datatype),
-			JWTAuth(authEnabled),
+			JWTAuth(authEnabled, PlatformAdminRole),
 			modifyFn)
 	}
 }
 
-// NewServer creates a new Server instance.
-func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, authEnabled bool,
-	privKey []byte, pubKey []byte, expiration int) *martini.Martini {
+// Platform represents the top level application.
+type Server struct {
+	Name    string
+	Martini *martini.Martini
+	Router  martini.Router
+}
+
+// // New creates Server instance
+// func New(ds database.Datastore, ap auth.Authenticator, prefixPath string,
+// 	authEnabled bool, platformEnabled bool, privKey []byte, pubKey []byte, expiration int) *Server {
+// 	return &Server{Name: "Server"}
+// }
+
+func (p *Server) Get(path string, fn interface{}) error {
+	return nil
+}
+
+// // NewServer creates a new Server instance.
+// func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string,
+// 	authEnabled bool, platformEnabled bool, privKey []byte, pubKey []byte, expiration int) *martini.Martini {
+
+// New creates Server instance
+func New(ds database.Datastore, ap auth.Authenticator, prefixPath string,
+	authEnabled bool, platformEnabled bool, privKey []byte, pubKey []byte, expiration int) *Server {
 
 	// Print a big fat warning if authentication is disabled.
 	if !authEnabled {
@@ -119,6 +143,8 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 	logging.Log.Info("Server config: JWT expiration set to %v hours", expiration)
 
 	// Configure GORP
+	ds.GetDBMap().AddTableWithName(accesslogs.AccessLogEntry{}, "platform_access_log").SetKeys(true, "id")
+
 	ds.GetDBMap().AddTableWithName(accounts.Account{}, "platform_account").SetKeys(true, "id")
 	ds.GetDBMap().AddTableWithName(accountroles.AccountOrganisationRole{}, "platform_account_organisation_role").SetKeys(true, "id")
 	ds.GetDBMap().AddTableWithName(accountplans.AccountPlanAssoc{}, "platform_account_plan_assoc").SetKeys(true, "id")
@@ -131,8 +157,8 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 
 	// Setup middleware
 	var m *martini.Martini
-
 	m = martini.New()
+
 	m.Use(martini.Recovery())
 	m.Use(martini.Logger())
 	m.Use(render.Renderer())
@@ -154,13 +180,12 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 
 	// Inject datastore
 	m.MapTo(ds, (*database.Datastore)(nil))
-	// Add the router action
 
 	r := martini.NewRouter()
 
 	r.Get(fmt.Sprintf("/%v/version", prefixPath),
 		strict.Accept("application/json", "text/html"),
-		JWTAuth(authEnabled && false),
+		JWTAuth(authEnabled, PlatformAdminRole),
 		GetVersion)
 
 	// Auth API
@@ -172,79 +197,90 @@ func NewServer(ds database.Datastore, ap auth.Authenticator, prefixPath string, 
 	// User info API
 	r.Get("/accounts/me",
 		strict.Accept("application/json", "text/html"),
-		JWTAuth(authEnabled && false),
+		JWTAuth(false, PlatformAdminRole),
 		GetSelf)
 
-	r.Get(fmt.Sprintf("/%v/accesslogs", prefixPath),
-		strict.Accept("application/json", "text/html"),
-		JWTAuth(authEnabled),
-		accesslogs.Get)
+	// We add the platform API *ONLY* if it was enabled in the
+	// configuration file.
+	if platformEnabled == true {
 
-	// Defines /accounts/* resources
-	//
-	AddDefaultResource(r, fmt.Sprintf("/%v/accounts", prefixPath), "p1", authEnabled,
-		accounts.List, accounts.Get, accounts.Delete, accounts.Create, accounts.Modify,
-		accounts.Account{})
+		r.Get(fmt.Sprintf("/%v/accesslogs", prefixPath),
+			strict.Accept("application/json", "text/html"),
+			JWTAuth(authEnabled, PlatformAdminRole),
+			accesslogs.Get)
 
-	// Defines /accounts/*/password resources
-	//
-	r.Post(fmt.Sprintf("/%v/accounts/:p1/password", prefixPath),
-		strict.Accept("application/json", "text/html"),
-		binding.Bind(accountpassword.AccountPassword{}),
-		JWTAuth(authEnabled), accountpassword.Set)
+		// Defines /accounts/* resources
+		//
+		AddDefaultResource(r, fmt.Sprintf("/%v/accounts", prefixPath), "p1", authEnabled,
+			accounts.List, accounts.Get, accounts.Delete, accounts.Create, accounts.Modify,
+			accounts.Account{})
 
-	// Defines /accounts/*/status resources
-	//
-	r.Post(fmt.Sprintf("/%v/accounts/:p1/status", prefixPath),
-		strict.Accept("application/json", "text/html"),
-		binding.Bind(accountstatus.AccountStatus{}),
-		JWTAuth(authEnabled), accountstatus.Set)
+		// Defines /accounts/*/password resources
+		//
+		r.Post(fmt.Sprintf("/%v/accounts/:p1/password", prefixPath),
+			strict.Accept("application/json", "text/html"),
+			binding.Bind(accountpassword.AccountPassword{}),
+			JWTAuth(authEnabled, PlatformAdminRole),
+			accountpassword.Set)
 
-	// Defines /accounts/*/plans resources
-	//
-	AddDefaultResource(r, fmt.Sprintf("/%v/accounts/:p1/plans", prefixPath), "p2", authEnabled,
-		accountplans.List, accountplans.Get, nil, accountplans.Create, nil,
-		accountplans.AccountPlanAssoc{})
+		// Defines /accounts/*/status resources
+		//
+		r.Post(fmt.Sprintf("/%v/accounts/:p1/status", prefixPath),
+			strict.Accept("application/json", "text/html"),
+			binding.Bind(accountstatus.AccountStatus{}),
+			JWTAuth(authEnabled, PlatformAdminRole),
+			accountstatus.Set)
 
-	// Defines /accounts/*/roles resources
-	//
-	AddDefaultResource(r, fmt.Sprintf("/%v/accounts/:p1/roles", prefixPath), "p2", authEnabled,
-		accountroles.List, accountroles.Get, nil, accountroles.Create, nil,
-		accountroles.AccountOrganisationRole{})
+		// Defines /accounts/*/plans resources
+		//
+		AddDefaultResource(r, fmt.Sprintf("/%v/accounts/:p1/plans", prefixPath), "p2", authEnabled,
+			accountplans.List, accountplans.Get, nil, accountplans.Create, nil,
+			accountplans.AccountPlanAssoc{})
 
-	// Defines /organisations/* resources
-	//
-	AddDefaultResource(r, fmt.Sprintf("/%v/organisations", prefixPath), "p1", authEnabled,
-		organisations.List, organisations.Get, organisations.Delete, organisations.Create, organisations.Modify,
-		organisations.Organisation{})
+		// Defines /accounts/*/roles resources
+		//
+		AddDefaultResource(r, fmt.Sprintf("/%v/accounts/:p1/roles", prefixPath), "p2", authEnabled,
+			accountroles.List, accountroles.Get, nil, accountroles.Create, nil,
+			accountroles.AccountOrganisationRole{})
 
-	// Defines /organisations/*/status resources
-	//
-	r.Post(fmt.Sprintf("/%v/organisations/:p1/status", prefixPath),
-		strict.Accept("application/json", "text/html"),
-		binding.Bind(orgstatus.OrganisationStatus{}),
-		JWTAuth(authEnabled), orgstatus.Set)
+		// Defines /organisations/* resources
+		//
+		AddDefaultResource(r, fmt.Sprintf("/%v/organisations", prefixPath), "p1", authEnabled,
+			organisations.List, organisations.Get, organisations.Delete, organisations.Create, organisations.Modify,
+			organisations.Organisation{})
 
-	// Defines /organisations/*/plans resources
-	//
-	AddDefaultResource(r, fmt.Sprintf("/%v/organisations/:p1/plans", prefixPath), "p2", authEnabled,
-		orgplans.List, orgplans.Get, nil, orgplans.Create, nil,
-		orgplans.OrganisationPlanAssoc{})
+		// Defines /organisations/*/status resources
+		//
+		r.Post(fmt.Sprintf("/%v/organisations/:p1/status", prefixPath),
+			strict.Accept("application/json", "text/html"),
+			binding.Bind(orgstatus.OrganisationStatus{}),
+			JWTAuth(authEnabled, PlatformAdminRole),
+			orgstatus.Set)
 
-	// Defines /plans/* resources
-	//
-	AddDefaultResource(r, fmt.Sprintf("/%v/plans", prefixPath), "p1", authEnabled,
-		plans.List, plans.Get, plans.Delete, plans.Create, plans.Modify,
-		plans.Plan{})
+		// Defines /organisations/*/plans resources
+		//
+		AddDefaultResource(r, fmt.Sprintf("/%v/organisations/:p1/plans", prefixPath), "p2", authEnabled,
+			orgplans.List, orgplans.Get, nil, orgplans.Create, nil,
+			orgplans.OrganisationPlanAssoc{})
 
-	// Defines /roles/* resources
-	//
-	AddDefaultResource(r, fmt.Sprintf("/%v/roles", prefixPath), "p1", authEnabled,
-		roles.List, roles.Get, roles.Delete, roles.Create, roles.Modify,
-		roles.Role{})
+		// Defines /plans/* resources
+		//
+		AddDefaultResource(r, fmt.Sprintf("/%v/plans", prefixPath), "p1", authEnabled,
+			plans.List, plans.Get, plans.Delete, plans.Create, plans.Modify,
+			plans.Plan{})
+
+		// Defines /roles/* resources
+		//
+		AddDefaultResource(r, fmt.Sprintf("/%v/roles", prefixPath), "p1", authEnabled,
+			roles.List, roles.Get, roles.Delete, roles.Create, roles.Modify,
+			roles.Role{})
+	}
 
 	//r.NotFound(strict.MethodNotAllowed, strict.NotFound)
-	m.Action(r.Handle)
+	// m.Action(r.Handle)
 
-	return m
+	// return m
+
+	return &Server{Name: "Server", Martini: m, Router: r}
+
 }
