@@ -116,13 +116,13 @@ func CheckConfig(config *Config, filename string, basepath string) error {
 		return fmt.Errorf("%v: 'MYSQL.username is a required option", filename)
 	}
 
-	tcpAddr := os.Getenv("MYSQL_PORT_3306_TCP_ADDR")
-	tcpPort := os.Getenv("MYSQL_PORT_3306_TCP_PORT")
-
-	if tcpAddr != "" && tcpPort != "" {
-		fmt.Printf("$MYSQL_PORT_3306_TCP_ADDR and $MYSQL_PORT_3306_TCP_PORT set. Overrides MYSQL.host in %v", filename)
-		config.MySQL.Host = fmt.Sprintf("tcp(%v:%v)", tcpAddr, tcpPort)
-	}
+	// tcpAddr := os.Getenv("MYSQL_PORT_3306_TCP_ADDR")
+	// tcpPort := os.Getenv("MYSQL_PORT_3306_TCP_PORT")
+	//
+	// if tcpAddr != "" && tcpPort != "" {
+	// 	fmt.Printf("$MYSQL_PORT_3306_TCP_ADDR and $MYSQL_PORT_3306_TCP_PORT set. Overrides MYSQL.host in %v", filename)
+	// 	config.MySQL.Host = fmt.Sprintf("tcp(%v:%v)", tcpAddr, tcpPort)
+	// }
 
 	// check if various paths are relative. if so, add the base path
 	if path.IsAbs(config.JWT.PublicKey) == false {
