@@ -13,7 +13,6 @@ package config
 import (
 	"fmt"
 	"path"
-	"os"
 )
 
 // The Config struct defines the structure of the configuration file.
