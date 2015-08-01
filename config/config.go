@@ -13,6 +13,7 @@ package config
 import (
 	"fmt"
 	"path"
+	"os"
 )
 
 // The Config struct defines the structure of the configuration file.
@@ -104,7 +105,23 @@ func CheckConfig(config *Config, filename string, basepath string) error {
 	// 	return fmt.Errorf("%v: 'mongodb' storage backend requires MySQL.host config option", filename)
 	// }
 	if config.MySQL.Database == "" {
-		return fmt.Errorf("%v: 'mongodb' storage backend requires MySQL.database config option", filename)
+		return fmt.Errorf("%v: 'MYSQL.database is a required option", filename)
+	}
+
+	if config.MySQL.Host == "" {
+		return fmt.Errorf("%v: 'MYSQL.host required option", filename)
+	}
+
+	if config.MySQL.Username == "" {
+		return fmt.Errorf("%v: 'MYSQL.username is a required option", filename)
+	}
+
+	tcpAddr := os.Getenv("MYSQL_PORT_3306_TCP_ADDR")
+	tcpPort := os.Getenv("MYSQL_PORT_3306_TCP_PORT")
+
+	if tcpAddr != "" && tcpPort != "" {
+		fmt.Printf("$MYSQL_PORT_3306_TCP_ADDR and $MYSQL_PORT_3306_TCP_PORT set. Overrides MYSQL.host in %v", filename)
+		config.MySQL.Host = fmt.Sprintf("tcp(%v:%v)", tcpAddr, tcpPort)
 	}
 
 	// check if various paths are relative. if so, add the base path
