@@ -195,10 +195,21 @@ func New(ds database.Datastore, ap auth.Authenticator, prefixPath string,
 		Auth)
 
 	// User info API
-	r.Get("/accounts/me",
+	r.Get("/self",
 		strict.Accept("application/json", "text/html"),
-		JWTAuth(false, PlatformAdminRole),
 		GetSelf)
+
+	// Change own data
+	// r.Post("/self",
+	// 	strict.Accept("application/json", "text/html"),
+	// 	JWTAuth(false, PlatformAdminRole),
+	// 	GetSelf)
+
+	// Change own password
+	// r.Post("/self/passsword",
+	// 	strict.Accept("application/json", "text/html"),
+	// 	JWTAuth(false, PlatformAdminRole),
+	// 	GetSelf)
 
 	// We add the platform API *ONLY* if it was enabled in the
 	// configuration file.

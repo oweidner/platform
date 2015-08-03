@@ -80,10 +80,12 @@ func New(configFile *string) *Platform {
 	rootAccount := accounts.Account{}
 	pwdHash1, _ := bcrypt.GenerateFromPassword([]byte(cfg.SERVER.AdminPassword), 0)
 	rootAccount = accounts.Account{
-		Firstname: null.StringFrom("Root"),
-		Lastname:  null.StringFrom("Admin Account"),
-		Username:  null.StringFrom(cfg.SERVER.AdminAccount),
-		Password:  string(pwdHash1)}
+		ID:           int64(-1),
+		Firstname:    null.StringFrom("Root"),
+		Lastname:     null.StringFrom("Admin Account"),
+		ContactEmail: null.StringFrom("root"),
+		Username:     null.StringFrom(cfg.SERVER.AdminAccount),
+		Password:     string(pwdHash1)}
 	// Load the JWT __PRIVATE__ key from the path / filename defined in
 	// the config file.
 	jwtPrivateKey, err1 := ioutil.ReadFile(cfg.JWT.PrivateKey)

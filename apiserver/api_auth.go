@@ -12,6 +12,7 @@ package apiserver
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"gopkg.in/guregu/null.v2"
@@ -57,11 +58,14 @@ func Auth(u AuthRequest, a auth.Authenticator, r render.Render, req *http.Reques
 
 	// Create a new JWT token
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
-	token.Claims["userid"] = data.ID     //account.Username
-	token.Claims["user"] = data.Username //account.Username
-	token.Claims["role"] = "data.Role"   //account.Role
+	token.Claims["userid"] = strconv.FormatInt(data.ID, 10)
+	token.Claims["user"] = data.Username.String
+	if data.ID == -1 {
+		token.Claims["role"] = "PLATFORM_ADMIN"
+	} else {
+		token.Claims["role"] = "PLATFORM_USER"
+	}
 
-	// Expire in 60 mins
 	token.Claims["exp"] = time.Now().Add(time.Hour * time.Duration(jwtExpiration)).Unix()
 
 	tokenString, err := token.SignedString(jwtPrivateKey)
@@ -101,29 +105,30 @@ func GetSelf(req *http.Request, params martini.Params, r render.Render, db datab
 
 	// Extract the userid.
 	user := token.Claims["user"]
-	userid := token.Claims["userid"]
+	userid := token.Claims["userid"].(string)
+	// role := token.Claims["role"]
 
 	// account holds the data returned to the caller
 	var account accounts.Account
 
 	// If the UserID is 0, this is the platform admin user.
-	if userid == 0 {
+	if userid == "-1" {
 		// Create a 'fake' admin account
 		account = accounts.Account{
-			ID:           1,
+			ID:           -1,
 			Firstname:    null.StringFrom("Platform"),
 			Lastname:     null.StringFrom("Superuser"),
 			ContactEmail: null.StringFrom("platform.codewerft.net"),
 			Username:     null.StringFrom(user.(string)),
 			Roles:        []string{"admin"}}
+
 	} else {
+
 		// Query the database for the given UserID
 		err := db.GetDBMap().SelectOne(&account, "SELECT * FROM platform_account WHERE _deleted=0 AND id=?", userid)
 		if err != nil {
 			responses.Error(r, err.Error())
-			r.JSON(http.StatusUnauthorized, ErrorResponse{
-				Code:    http.StatusUnauthorized,
-				Message: err.Error()})
+			return
 		}
 	}
 

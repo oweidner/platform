@@ -66,8 +66,9 @@ func JWTAuth(authEnabled interface{}, requiredRole interface{}) martini.Handler 
 
 		// We have a valid token. Now we can check if user and role data
 		// can be extracted, and if so, make sure the user has the correct role.
-		user := token.Claims["user"]
+
 		role := token.Claims["role"]
+		user := token.Claims["user"]
 
 		if user == nil || role == nil {
 			r.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -77,13 +78,12 @@ func JWTAuth(authEnabled interface{}, requiredRole interface{}) martini.Handler 
 		}
 
 		// Compare the roles.
-		if role != requiredRole.(string) {
 
-			// accesslogs.DBWriteLoginError(ap.Database, origin, username, dbError.Error(), userid)
+		if role != nil && role != requiredRole.(string) {
 
 			r.JSON(http.StatusUnauthorized, ErrorResponse{
 				Code:    http.StatusUnauthorized,
-				Message: "Invalid credentials for this request. This incident will be logged."})
+				Message: "Invalid role for this request. This incident will be logged."})
 			return
 		}
 

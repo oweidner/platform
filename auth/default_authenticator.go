@@ -43,6 +43,17 @@ func (ap *DefaultAuthProvider) Auth(origin string, username string, password []b
 	var account accounts.Account
 	var userid null.Int
 
+	if ap.RootAccount.Username.String == username {
+		bcryptErr := bcrypt.CompareHashAndPassword([]byte(ap.RootAccount.Password), password)
+		if bcryptErr != nil {
+			accesslogs.DBWriteLoginError(ap.Database, origin, username, bcryptErr.Error(), userid)
+			return accounts.Account{}, bcryptErr
+		}
+		// Account authenticated successfully.
+		accesslogs.DBWriteLoginOK(ap.Database, origin, username, userid)
+		return ap.RootAccount, nil
+	}
+
 	dbError := ap.Database.GetDBMap().SelectOne(&account, "SELECT * FROM platform_account WHERE _deleted=0 AND username=?", username)
 	if dbError != nil {
 		accesslogs.DBWriteLoginError(ap.Database, origin, username, dbError.Error(), userid)
