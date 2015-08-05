@@ -13,7 +13,6 @@ package apiserver
 import (
 	"fmt"
 
-	"github.com/codewerft/platform/auth"
 	"github.com/codewerft/platform/database"
 	"github.com/codewerft/platform/logging"
 
@@ -22,6 +21,7 @@ import (
 	"github.com/codewerft/platform/apiserver/accounts/accountplans"
 	"github.com/codewerft/platform/apiserver/accounts/accountroles"
 	"github.com/codewerft/platform/apiserver/accounts/accountstatus"
+	"github.com/codewerft/platform/apiserver/authentication"
 	"github.com/codewerft/platform/apiserver/organisations"
 	"github.com/codewerft/platform/apiserver/organisations/orgplans"
 	"github.com/codewerft/platform/apiserver/organisations/orgstatus"
@@ -46,13 +46,7 @@ const ApplicationPrefix = ""
 const PlatformAdminRole = "PLATFORM_ADMIN"
 const PlatformUserRole = "PLATFORM_USER"
 
-var (
-	jwtExpiration int
-	jwtPrivateKey []byte
-	jwtPublicKey  []byte
-)
-
-func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string, authEnabled bool,
+func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string, jwtcfg authentication.JWTConfig,
 	listFn interface{}, getFn interface{}, deleteFn interface{}, createFn interface{}, modifyFn interface{}, datatype interface{}) {
 
 	/* List the resources
@@ -60,7 +54,7 @@ func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string,
 	if getFn != nil {
 		r.Get(fmt.Sprintf("%v/:%s", basePath, idPlaceholder),
 			strict.Accept("application/json", "text/html"),
-			JWTAuth(authEnabled, PlatformAdminRole),
+			authentication.JWTAuth(jwtcfg, PlatformAdminRole),
 			getFn)
 	}
 
@@ -69,7 +63,7 @@ func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string,
 	if listFn != nil {
 		r.Get(fmt.Sprintf("%v", basePath),
 			strict.Accept("application/json", "text/html"),
-			JWTAuth(authEnabled, PlatformAdminRole),
+			authentication.JWTAuth(jwtcfg, PlatformAdminRole),
 			listFn)
 	}
 
@@ -78,7 +72,7 @@ func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string,
 	if deleteFn != nil {
 		r.Delete(fmt.Sprintf("%v/:%s", basePath, idPlaceholder),
 			strict.Accept("application/json", "text/html"),
-			JWTAuth(authEnabled, PlatformAdminRole),
+			authentication.JWTAuth(jwtcfg, PlatformAdminRole),
 			deleteFn)
 	}
 
@@ -88,7 +82,7 @@ func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string,
 		r.Put(fmt.Sprintf("%v", basePath),
 			strict.Accept("application/json", "text/html"),
 			binding.Bind(datatype),
-			JWTAuth(authEnabled, PlatformAdminRole),
+			authentication.JWTAuth(jwtcfg, PlatformAdminRole),
 			createFn)
 	}
 
@@ -98,16 +92,17 @@ func AddDefaultResource(r martini.Router, basePath string, idPlaceholder string,
 		r.Post(fmt.Sprintf("%v/:%s", basePath, idPlaceholder),
 			strict.Accept("application/json", "text/html"),
 			binding.Bind(datatype),
-			JWTAuth(authEnabled, PlatformAdminRole),
+			authentication.JWTAuth(jwtcfg, PlatformAdminRole),
 			modifyFn)
 	}
 }
 
 // Platform represents the top level application.
 type Server struct {
-	Name    string
-	Martini *martini.Martini
-	Router  martini.Router
+	Name      string
+	Martini   *martini.Martini
+	Router    martini.Router
+	JWTConfig authentication.JWTConfig
 }
 
 // // New creates Server instance
@@ -125,7 +120,7 @@ func (p *Server) Get(path string, fn interface{}) error {
 // 	authEnabled bool, platformEnabled bool, privKey []byte, pubKey []byte, expiration int) *martini.Martini {
 
 // New creates Server instance
-func New(ds database.Datastore, ap auth.Authenticator, prefixPath string,
+func New(ds database.Datastore, prefixPath string,
 	authEnabled bool, platformEnabled bool, privKey []byte, pubKey []byte, expiration int) *Server {
 
 	// Print a big fat warning if authentication is disabled.
@@ -135,11 +130,11 @@ func New(ds database.Datastore, ap auth.Authenticator, prefixPath string,
 		logging.Log.Warning("***********************************************************************************")
 	}
 
-	jwtPrivateKey = privKey
-	jwtPublicKey = pubKey
+	jwtcfg := authentication.JWTConfig{
+		PublicKey:  pubKey,
+		PrivateKey: privKey,
+		Expiration: expiration}
 
-	// Export JWT expiration
-	jwtExpiration = expiration
 	logging.Log.Info("Server config: JWT expiration set to %v hours", expiration)
 
 	// Configure GORP
@@ -175,29 +170,31 @@ func New(ds database.Datastore, ap auth.Authenticator, prefixPath string,
 		AllowCredentials: true,
 	}))
 
-	// Inject authenticator
-	m.MapTo(ap, (*auth.Authenticator)(nil))
-
 	// Inject datastore
 	m.MapTo(ds, (*database.Datastore)(nil))
+
+	var jwtc authentication.JWTConfigIF
+	jwtc = authentication.TheJWTConfig{Config: jwtcfg}
+
+	m.MapTo(jwtc, (*authentication.JWTConfigIF)(nil))
 
 	r := martini.NewRouter()
 
 	r.Get(fmt.Sprintf("/%v/version", prefixPath),
 		strict.Accept("application/json", "text/html"),
-		JWTAuth(authEnabled, PlatformAdminRole),
+		authentication.JWTAuth(jwtcfg, PlatformAdminRole),
 		GetVersion)
 
 	// Auth API
 	r.Post("/auth",
 		strict.Accept("application/json", "text/html"),
-		binding.Bind(AuthRequest{}),
-		Auth)
+		binding.Bind(authentication.AuthRequest{}),
+		authentication.Auth)
 
 	// User info API
 	r.Get("/self",
 		strict.Accept("application/json", "text/html"),
-		GetSelf)
+		authentication.GetSelf)
 
 	// Change own data
 	// r.Post("/self",
@@ -217,12 +214,12 @@ func New(ds database.Datastore, ap auth.Authenticator, prefixPath string,
 
 		r.Get(fmt.Sprintf("/%v/accesslogs", prefixPath),
 			strict.Accept("application/json", "text/html"),
-			JWTAuth(authEnabled, PlatformAdminRole),
+			authentication.JWTAuth(jwtcfg, PlatformAdminRole),
 			accesslogs.Get)
 
 		// Defines /accounts/* resources
 		//
-		AddDefaultResource(r, fmt.Sprintf("/%v/accounts", prefixPath), "p1", authEnabled,
+		AddDefaultResource(r, fmt.Sprintf("/%v/accounts", prefixPath), "p1", jwtcfg,
 			accounts.List, accounts.Get, accounts.Delete, accounts.Create, accounts.Modify,
 			accounts.Account{})
 
@@ -231,7 +228,7 @@ func New(ds database.Datastore, ap auth.Authenticator, prefixPath string,
 		r.Post(fmt.Sprintf("/%v/accounts/:p1/password", prefixPath),
 			strict.Accept("application/json", "text/html"),
 			binding.Bind(accountpassword.AccountPassword{}),
-			JWTAuth(authEnabled, PlatformAdminRole),
+			authentication.JWTAuth(jwtcfg, PlatformAdminRole),
 			accountpassword.Set)
 
 		// Defines /accounts/*/status resources
@@ -239,24 +236,24 @@ func New(ds database.Datastore, ap auth.Authenticator, prefixPath string,
 		r.Post(fmt.Sprintf("/%v/accounts/:p1/status", prefixPath),
 			strict.Accept("application/json", "text/html"),
 			binding.Bind(accountstatus.AccountStatus{}),
-			JWTAuth(authEnabled, PlatformAdminRole),
+			authentication.JWTAuth(jwtcfg, PlatformAdminRole),
 			accountstatus.Set)
 
 		// Defines /accounts/*/plans resources
 		//
-		AddDefaultResource(r, fmt.Sprintf("/%v/accounts/:p1/plans", prefixPath), "p2", authEnabled,
+		AddDefaultResource(r, fmt.Sprintf("/%v/accounts/:p1/plans", prefixPath), "p2", jwtcfg,
 			accountplans.List, accountplans.Get, nil, accountplans.Create, nil,
 			accountplans.AccountPlanAssoc{})
 
 		// Defines /accounts/*/roles resources
 		//
-		AddDefaultResource(r, fmt.Sprintf("/%v/accounts/:p1/roles", prefixPath), "p2", authEnabled,
+		AddDefaultResource(r, fmt.Sprintf("/%v/accounts/:p1/roles", prefixPath), "p2", jwtcfg,
 			accountroles.List, accountroles.Get, nil, accountroles.Create, nil,
 			accountroles.AccountOrganisationRole{})
 
 		// Defines /organisations/* resources
 		//
-		AddDefaultResource(r, fmt.Sprintf("/%v/organisations", prefixPath), "p1", authEnabled,
+		AddDefaultResource(r, fmt.Sprintf("/%v/organisations", prefixPath), "p1", jwtcfg,
 			organisations.List, organisations.Get, organisations.Delete, organisations.Create, organisations.Modify,
 			organisations.Organisation{})
 
@@ -265,24 +262,24 @@ func New(ds database.Datastore, ap auth.Authenticator, prefixPath string,
 		r.Post(fmt.Sprintf("/%v/organisations/:p1/status", prefixPath),
 			strict.Accept("application/json", "text/html"),
 			binding.Bind(orgstatus.OrganisationStatus{}),
-			JWTAuth(authEnabled, PlatformAdminRole),
+			authentication.JWTAuth(jwtcfg, PlatformAdminRole),
 			orgstatus.Set)
 
 		// Defines /organisations/*/plans resources
 		//
-		AddDefaultResource(r, fmt.Sprintf("/%v/organisations/:p1/plans", prefixPath), "p2", authEnabled,
+		AddDefaultResource(r, fmt.Sprintf("/%v/organisations/:p1/plans", prefixPath), "p2", jwtcfg,
 			orgplans.List, orgplans.Get, nil, orgplans.Create, nil,
 			orgplans.OrganisationPlanAssoc{})
 
 		// Defines /plans/* resources
 		//
-		AddDefaultResource(r, fmt.Sprintf("/%v/plans", prefixPath), "p1", authEnabled,
+		AddDefaultResource(r, fmt.Sprintf("/%v/plans", prefixPath), "p1", jwtcfg,
 			plans.List, plans.Get, plans.Delete, plans.Create, plans.Modify,
 			plans.Plan{})
 
 		// Defines /roles/* resources
 		//
-		AddDefaultResource(r, fmt.Sprintf("/%v/roles", prefixPath), "p1", authEnabled,
+		AddDefaultResource(r, fmt.Sprintf("/%v/roles", prefixPath), "p1", jwtcfg,
 			roles.List, roles.Get, roles.Delete, roles.Create, roles.Modify,
 			roles.Role{})
 	}
@@ -292,6 +289,6 @@ func New(ds database.Datastore, ap auth.Authenticator, prefixPath string,
 
 	// return m
 
-	return &Server{Name: "Server", Martini: m, Router: r}
+	return &Server{Name: "Server", Martini: m, Router: r, JWTConfig: jwtcfg}
 
 }

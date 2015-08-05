@@ -19,6 +19,7 @@ import (
 type Status struct {
 	Status  string
 	Message string
+	Details string
 }
 
 type Response struct {
@@ -36,6 +37,12 @@ func Error(r render.Render, message string) {
 func ResourceNotFound(r render.Render) {
 	status := Status{Status: "Error", Message: "Resource not found"}
 	r.JSON(http.StatusNotFound, status)
+}
+
+// XGetNotFound sends a 404 message back to the client.
+func AuthenticationError(r render.Render, message string, details string) {
+	status := Status{Status: "Error", Message: message, Details: details}
+	r.JSON(http.StatusUnauthorized, status)
 }
 
 // XCreateOK sends the result back to the client.

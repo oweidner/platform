@@ -19,16 +19,13 @@ import (
 	"path/filepath"
 
 	"code.google.com/p/gcfg"
+	"github.com/attilaolah/strict"
 	"github.com/codewerft/platform/apiserver"
-	"github.com/codewerft/platform/apiserver/accounts"
+	"github.com/codewerft/platform/apiserver/authentication"
 
-	"github.com/codewerft/platform/auth"
 	"github.com/codewerft/platform/config"
 	"github.com/codewerft/platform/database"
 	"github.com/codewerft/platform/logging"
-	"golang.org/x/crypto/bcrypt"
-
-	"gopkg.in/guregu/null.v2"
 )
 
 var (
@@ -47,7 +44,6 @@ type Platform struct {
 	Server *apiserver.Server
 }
 
-var ap auth.Authenticator
 var ds database.Datastore
 
 // New creates a bare bones Platform instance.
@@ -77,15 +73,15 @@ func New(configFile *string) *Platform {
 
 	// Create the root account credentials from the username and password
 	// values defined in the config file.
-	rootAccount := accounts.Account{}
-	pwdHash1, _ := bcrypt.GenerateFromPassword([]byte(cfg.SERVER.AdminPassword), 0)
-	rootAccount = accounts.Account{
-		ID:           int64(-1),
-		Firstname:    null.StringFrom("Root"),
-		Lastname:     null.StringFrom("Admin Account"),
-		ContactEmail: null.StringFrom("root"),
-		Username:     null.StringFrom(cfg.SERVER.AdminAccount),
-		Password:     string(pwdHash1)}
+	// rootAccount := accounts.Account{}
+	// pwdHash1, _ := bcrypt.GenerateFromPassword([]byte(cfg.SERVER.AdminPassword), 0)
+	// rootAccount = accounts.Account{
+	// 	ID:           int64(-1),
+	// 	Firstname:    null.StringFrom("Root"),
+	// 	Lastname:     null.StringFrom("Admin Account"),
+	// 	ContactEmail: null.StringFrom("root"),
+	// 	Username:     null.StringFrom(cfg.SERVER.AdminAccount),
+	// 	Password:     string(pwdHash1)}
 	// Load the JWT __PRIVATE__ key from the path / filename defined in
 	// the config file.
 	jwtPrivateKey, err1 := ioutil.ReadFile(cfg.JWT.PrivateKey)
@@ -106,12 +102,10 @@ func New(configFile *string) *Platform {
 	// in the config file.
 	ds = database.NewDefaultDatastore(cfg.MySQL.Host, cfg.MySQL.Database, cfg.MySQL.Username, cfg.MySQL.Password)
 	defer ds.Close()
-	// Instantiate the authentication backend and inject the root account.
-	ap = auth.NewDefaultAuthProvider(ds, rootAccount)
 
 	// Finally, we start up the Platform API server and inject the storage
 	// and authentication backend instances.
-	server := apiserver.New(ds, ap, cfg.SERVER.PlatformPrefix,
+	server := apiserver.New(ds, cfg.SERVER.PlatformPrefix,
 		!cfg.SERVER.DisableAuth, cfg.SERVER.EnablePlatformAPI,
 		jwtPrivateKey, jwtPublicKey, cfg.JWT.Expiration)
 
@@ -137,7 +131,11 @@ func (p *Platform) Get(path string, handleFunc interface{}) error {
 	if p.Config.SERVER.EnableApplicationAPI == false {
 		return nil
 	}
-	p.Server.Router.Get(path, handleFunc)
+
+	p.Server.Router.Get(path,
+		strict.Accept("application/json", "text/html"),
+		authentication.JWTAuth(p.Server.JWTConfig, nil),
+		handleFunc)
 	return nil
 }
 
