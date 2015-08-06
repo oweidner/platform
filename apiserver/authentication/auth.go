@@ -113,58 +113,20 @@ func Auth(u AuthRequest, r render.Render, req *http.Request, db database.Datasto
 
 // GetSelf retrieves the account referenced in the auth token.
 //
-func GetSelf(req *http.Request, params martini.Params, r render.Render, db database.Datastore, jwtcfg JWTConfigIF) {
-
-	// Extract the JWT from the http request
-	token, err := jwt.ParseFromRequest(req, func(token *jwt.Token) (interface{}, error) {
-		return jwtcfg.Get().PublicKey, nil
-	})
-
-	// Checks if a token was extracted successfully; returns an error if not.
-	if err != nil {
-		r.JSON(http.StatusUnauthorized,
-			ErrorResponse{
-				Code:    http.StatusUnauthorized,
-				Message: err.Error()})
-		return
-	}
-
-	// Checks is the token is valid; returns an error if not.
-	if token.Valid == false {
-		r.JSON(http.StatusUnauthorized, ErrorResponse{
-			Code:    http.StatusUnauthorized,
-			Message: "Invalid Token"})
-		return
-	}
-
-	// Extract the userid.
-	user := token.Claims["user"]
-	userid := token.Claims["userid"].(string)
-	// role := token.Claims["role"]
+func GetSelf(req *http.Request, params martini.Params, r render.Render, db database.Datastore, user UserInfo) {
 
 	// account holds the data returned to the caller
 	var account accounts.Account
 
-	// If the UserID is 0, this is the platform admin user.
-	if userid == "-1" {
-		// Create a 'fake' admin account
-		account = accounts.Account{
-			ID:           -1,
-			Firstname:    null.StringFrom("Platform"),
-			Lastname:     null.StringFrom("Superuser"),
-			ContactEmail: null.StringFrom("platform.codewerft.net"),
-			Username:     null.StringFrom(user.(string)),
-			Roles:        []string{"admin"}}
-
-	} else {
-
-		// Query the database for the given UserID
-		err := db.GetDBMap().SelectOne(&account, "SELECT * FROM platform_account WHERE _deleted=0 AND id=?", userid)
-		if err != nil {
-			responses.Error(r, err.Error())
-			return
-		}
+	// Query the database for the given UserID
+	err := db.GetDBMap().SelectOne(&account, "SELECT * FROM platform_account WHERE _deleted=0 AND id=?", user.UserID)
+	if err != nil {
+		responses.Error(r, err.Error())
+		return
 	}
 
-	r.JSON(http.StatusOK, account)
+	// "gray-out" the password
+	account.Password = ""
+
+	responses.OKStatusPlusData(r, account, 1)
 }

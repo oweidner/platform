@@ -194,6 +194,7 @@ func New(ds database.Datastore, prefixPath string,
 	// User info API
 	r.Get("/self",
 		strict.Accept("application/json", "text/html"),
+		authentication.JWTAuth(jwtcfg, nil),
 		authentication.GetSelf)
 
 	// Change own data
