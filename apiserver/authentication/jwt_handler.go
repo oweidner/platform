@@ -41,6 +41,8 @@ func (c TheJWTConfig) Get() JWTConfig {
 type UserInfo struct {
 	UserID           int64   `db:"userid"`
 	Username         string  `db:"username"`
+	Firstname        string  `db:"firstname"`
+	Lastname         string  `db:"lastname"`
 	OrganisationID   int64   `db:"org_id"`
 	OrganisationName string  `db:"org_name"`
 	RoleID           int64   `db:"role_id"`
@@ -87,6 +89,7 @@ func JWTAuth(jwtcfg JWTConfig, requiredRole interface{}) martini.Handler {
 		// We have a valid token. Now we can check if user and role data
 		// can be extracted, and if so, make sure the user has the correct role.
 		if token.Claims["user_id"] == nil || token.Claims["user"] == nil ||
+			token.Claims["firstname"] == nil || token.Claims["lastname"] == nil ||
 			token.Claims["org_id"] == nil || token.Claims["org_name"] == nil ||
 			token.Claims["role_id"] == nil || token.Claims["role_name"] == nil ||
 			token.Claims["exp"] == nil || token.Claims["is_admin"] == nil {
@@ -114,6 +117,8 @@ func JWTAuth(jwtcfg JWTConfig, requiredRole interface{}) martini.Handler {
 		context.Map(UserInfo{
 			UserID:           userID,
 			Username:         token.Claims["user"].(string),
+			Firstname:        token.Claims["firstname"].(string),
+			Lastname:         token.Claims["lastname"].(string),
 			OrganisationID:   organisationID,
 			OrganisationName: token.Claims["org_name"].(string),
 			RoleID:           roleID,

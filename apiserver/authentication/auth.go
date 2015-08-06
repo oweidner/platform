@@ -52,7 +52,7 @@ func Auth(u AuthRequest, r render.Render, req *http.Request, db database.Datasto
 	userInfo := []UserInfo{}
 
 	_, dbError := db.GetDBMap().Select(&userInfo, `
-		SELECT a.id AS userid, a.username, a.password, aor.organisation_id AS org_id, org.name AS org_name, aor.role_id AS role_id, r.name AS role_name
+		SELECT a.id AS userid, a.username, a.firstname, a.lastname, a.password, aor.organisation_id AS org_id, org.name AS org_name, aor.role_id AS role_id, r.name AS role_name
 		  FROM platform_account a LEFT JOIN platform_account_organisation_role aor ON (a.id = aor.account_id),
 			platform_organisation org, platform_role r
 			WHERE org.id = aor.organisation_id AND r.id = aor.role_id AND username=?;`, u.Username)
@@ -90,6 +90,8 @@ func Auth(u AuthRequest, r render.Render, req *http.Request, db database.Datasto
 
 	token.Claims["user_id"] = strconv.FormatInt(userInfo[0].UserID, 10)
 	token.Claims["user"] = userInfo[0].Username
+	token.Claims["firstname"] = userInfo[0].Firstname
+	token.Claims["lastname"] = userInfo[0].Lastname
 	token.Claims["org_id"] = strconv.FormatInt(userInfo[0].OrganisationID, 10)
 	token.Claims["org_name"] = userInfo[0].OrganisationName
 	token.Claims["role_id"] = strconv.FormatInt(userInfo[0].RoleID, 10)
