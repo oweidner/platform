@@ -113,11 +113,11 @@ func Auth(u AuthRequest, r render.Render, req *http.Request, db database.Datasto
 
 // GetSelf retrieves the account referenced in the auth token.
 //
-func GetSelf(req *http.Request, params martini.Params, r render.Render, db database.Datastore, jwtcfg JWTConfig) {
+func GetSelf(req *http.Request, params martini.Params, r render.Render, db database.Datastore, jwtcfg JWTConfigIF) {
 
 	// Extract the JWT from the http request
 	token, err := jwt.ParseFromRequest(req, func(token *jwt.Token) (interface{}, error) {
-		return jwtcfg.PublicKey, nil
+		return jwtcfg.Get().PublicKey, nil
 	})
 
 	// Checks if a token was extracted successfully; returns an error if not.
