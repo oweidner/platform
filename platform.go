@@ -22,6 +22,7 @@ import (
 	"github.com/attilaolah/strict"
 	"github.com/codewerft/platform/apiserver"
 	"github.com/codewerft/platform/apiserver/authentication"
+	"github.com/martini-contrib/binding"
 
 	"github.com/codewerft/platform/config"
 	"github.com/codewerft/platform/database"
@@ -144,7 +145,12 @@ func (p *Platform) Post(path string, handleFunc interface{}, requestType interfa
 	if p.Config.SERVER.EnableApplicationAPI == false {
 		return nil
 	}
-	p.Server.Router.Post(path, handleFunc, requestType)
+
+	p.Server.Router.Post(path,
+		strict.Accept("application/json", "text/html"),
+		binding.Bind(requestType),
+		authentication.JWTAuth(p.Server.JWTConfig, nil),
+		handleFunc)
 	return nil
 }
 
@@ -153,7 +159,12 @@ func (p *Platform) Put(path string, handleFunc interface{}, requestType interfac
 	if p.Config.SERVER.EnableApplicationAPI == false {
 		return nil
 	}
-	p.Server.Router.Put(path, handleFunc, requestType)
+
+	p.Server.Router.Put(path,
+		strict.Accept("application/json", "text/html"),
+		binding.Bind(requestType),
+		authentication.JWTAuth(p.Server.JWTConfig, nil),
+		handleFunc)
 	return nil
 }
 
