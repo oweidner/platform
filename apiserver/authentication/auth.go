@@ -20,10 +20,8 @@ import (
 	"gopkg.in/guregu/null.v2"
 
 	"github.com/codewerft/platform/apiserver/accesslogs"
-	"github.com/codewerft/platform/apiserver/accounts"
 	"github.com/codewerft/platform/apiserver/responses"
 	"github.com/codewerft/platform/database"
-	"github.com/go-martini/martini"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gavv/martini-render"
@@ -111,24 +109,4 @@ func Auth(u AuthRequest, r render.Render, req *http.Request, db database.Datasto
 	}
 	// Return the token
 	r.JSON(http.StatusOK, AuthResponse{Token: tokenString})
-}
-
-// GetSelf retrieves the account referenced in the auth token.
-//
-func GetSelf(req *http.Request, params martini.Params, r render.Render, db database.Datastore, user UserInfo) {
-
-	// account holds the data returned to the caller
-	var account accounts.Account
-
-	// Query the database for the given UserID
-	err := db.GetDBMap().SelectOne(&account, "SELECT * FROM platform_account WHERE _deleted=0 AND id=?", user.UserID)
-	if err != nil {
-		responses.Error(r, err.Error())
-		return
-	}
-
-	// "gray-out" the password
-	account.Password = ""
-
-	responses.OKStatusPlusData(r, account, 1)
 }

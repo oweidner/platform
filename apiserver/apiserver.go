@@ -16,6 +16,9 @@ import (
 	"github.com/codewerft/platform/database"
 	"github.com/codewerft/platform/logging"
 
+	"github.com/codewerft/platform/apiserver/self"
+	"github.com/codewerft/platform/apiserver/self/picture"
+
 	"github.com/codewerft/platform/apiserver/accounts"
 	"github.com/codewerft/platform/apiserver/accounts/accountpassword"
 	"github.com/codewerft/platform/apiserver/accounts/accountplans"
@@ -195,7 +198,19 @@ func New(ds database.Datastore, prefixPath string,
 	r.Get("/self",
 		strict.Accept("application/json", "text/html"),
 		authentication.JWTAuth(jwtcfg, nil),
-		authentication.GetSelf)
+		self.GetSelf)
+
+	// User picture
+	r.Get("/self/picture",
+		strict.Accept("application/json", "text/html"),
+		authentication.JWTAuth(jwtcfg, nil),
+		picture.GetPicture)
+
+	r.Put("/self/picture",
+		strict.Accept("application/json", "text/html"),
+		authentication.JWTAuth(jwtcfg, nil),
+		binding.Bind(picture.ProfilePicture{}),
+		picture.PutPicture)
 
 	// Change own data
 	// r.Post("/self",

@@ -8,35 +8,46 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package accounts
+package picture
 
-import "gopkg.in/guregu/null.v2"
+import (
+	"image"
+	"image/png"
+	"io"
 
-// Account represents an Account object as it exists
-// in the database.
-type Account struct {
-	ID                int64       `db:"id"`
-	Deleted           null.Bool   `db:"_deleted"`
-	Disabled          null.Bool   `db:"disabled"`
-	Username          null.String `db:"username"`
-	Password          string      `db:"password"`
-	Firstname         null.String `db:"firstname"`
-	Lastname          null.String `db:"lastname"`
-	Title             null.String `db:"title"`
-	ContactEmail      null.String `db:"contact_email"`
-	ContactPhone      null.String `db:"contact_phone"`
-	AddressStreet1    null.String `db:"address_street_1"`
-	AddressStreet2    null.String `db:"address_street_2"`
-	AddressZIP        null.String `db:"address_zip"`
-	AddressCity       null.String `db:"address_city"`
-	AddressCountry    null.String `db:"address_country"`
-	BankAccountHolder null.String `db:"bank_account_holder"`
-	BankIBAN          null.String `db:"bank_iban"`
-	BankBIC           null.String `db:"bank_bic"`
-	BankName          null.String `db:"bank_name"`
-	Roles             []string    `db:"-"`
-	ProfilePicture    null.String `db:"profile_picture"`
+	"github.com/codewerft/platform/apiserver/authentication"
+	"github.com/codewerft/platform/apiserver/responses"
+	"github.com/codewerft/platform/database"
+
+	"github.com/gavv/martini-render"
+
+	// Available image format drivers
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+)
+
+// convertToPNG converts from any recognized format to PNG.
+func convertToPNG(w io.Writer, r io.Reader) error {
+	img, _, err := image.Decode(r)
+	if err != nil {
+		return err
+	}
+	return png.Encode(w, img)
 }
 
-// AccountList represents a list of Account objects.
-type AccountList []Account
+// GetPicture returns the profile picture data for an account.
+//
+func GetPicture(r render.Render, db database.Datastore, user authentication.UserInfo) {
+
+	var picture ProfilePicture
+
+	dbError := db.GetDBMap().SelectOne(&picture, `
+    SELECT profile_picture from platform_account WHERE id = ?;`, user.UserID)
+	if dbError != nil {
+		responses.Error(r, dbError.Error())
+		return
+	}
+
+	responses.OKStatusPlusData(r, picture, 1)
+}

@@ -8,35 +8,27 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package accounts
+package picture
 
-import "gopkg.in/guregu/null.v2"
+import (
+	"github.com/codewerft/platform/apiserver/authentication"
+	"github.com/codewerft/platform/apiserver/responses"
+	"github.com/codewerft/platform/database"
 
-// Account represents an Account object as it exists
-// in the database.
-type Account struct {
-	ID                int64       `db:"id"`
-	Deleted           null.Bool   `db:"_deleted"`
-	Disabled          null.Bool   `db:"disabled"`
-	Username          null.String `db:"username"`
-	Password          string      `db:"password"`
-	Firstname         null.String `db:"firstname"`
-	Lastname          null.String `db:"lastname"`
-	Title             null.String `db:"title"`
-	ContactEmail      null.String `db:"contact_email"`
-	ContactPhone      null.String `db:"contact_phone"`
-	AddressStreet1    null.String `db:"address_street_1"`
-	AddressStreet2    null.String `db:"address_street_2"`
-	AddressZIP        null.String `db:"address_zip"`
-	AddressCity       null.String `db:"address_city"`
-	AddressCountry    null.String `db:"address_country"`
-	BankAccountHolder null.String `db:"bank_account_holder"`
-	BankIBAN          null.String `db:"bank_iban"`
-	BankBIC           null.String `db:"bank_bic"`
-	BankName          null.String `db:"bank_name"`
-	Roles             []string    `db:"-"`
-	ProfilePicture    null.String `db:"profile_picture"`
+	"github.com/gavv/martini-render"
+	"github.com/go-martini/martini"
+)
+
+// PutPicture updates an account's profile picture.
+//
+func PutPicture(r render.Render, params martini.Params, db database.Datastore, data ProfilePicture, user authentication.UserInfo) {
+
+	_, err := db.GetDBMap().Exec(`
+    UPDATE platform_account SET profile_picture = ? where id = ?`, data.Thumbnail, user.UserID)
+	if err != nil {
+		responses.Error(r, err.Error())
+		return
+	}
+
+	responses.OKStatusOnly(r, "Profile picture updated")
 }
-
-// AccountList represents a list of Account objects.
-type AccountList []Account

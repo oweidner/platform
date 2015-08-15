@@ -8,35 +8,35 @@
 // Copyright 2015 Codewerft UG (http://www.codewerft.net).
 // All rights reserved.
 
-package accounts
+package self
 
-import "gopkg.in/guregu/null.v2"
+import (
+	"net/http"
 
-// Account represents an Account object as it exists
-// in the database.
-type Account struct {
-	ID                int64       `db:"id"`
-	Deleted           null.Bool   `db:"_deleted"`
-	Disabled          null.Bool   `db:"disabled"`
-	Username          null.String `db:"username"`
-	Password          string      `db:"password"`
-	Firstname         null.String `db:"firstname"`
-	Lastname          null.String `db:"lastname"`
-	Title             null.String `db:"title"`
-	ContactEmail      null.String `db:"contact_email"`
-	ContactPhone      null.String `db:"contact_phone"`
-	AddressStreet1    null.String `db:"address_street_1"`
-	AddressStreet2    null.String `db:"address_street_2"`
-	AddressZIP        null.String `db:"address_zip"`
-	AddressCity       null.String `db:"address_city"`
-	AddressCountry    null.String `db:"address_country"`
-	BankAccountHolder null.String `db:"bank_account_holder"`
-	BankIBAN          null.String `db:"bank_iban"`
-	BankBIC           null.String `db:"bank_bic"`
-	BankName          null.String `db:"bank_name"`
-	Roles             []string    `db:"-"`
-	ProfilePicture    null.String `db:"profile_picture"`
+	"github.com/codewerft/platform/apiserver/accounts"
+	"github.com/codewerft/platform/apiserver/authentication"
+	"github.com/codewerft/platform/apiserver/responses"
+	"github.com/codewerft/platform/database"
+	"github.com/gavv/martini-render"
+	"github.com/go-martini/martini"
+)
+
+// GetSelf retrieves the account referenced in the auth token.
+//
+func GetSelf(req *http.Request, params martini.Params, r render.Render, db database.Datastore, user authentication.UserInfo) {
+
+	// account holds the data returned to the caller
+	var account accounts.Account
+
+	// Query the database for the given UserID
+	err := db.GetDBMap().SelectOne(&account, "SELECT * FROM platform_account WHERE _deleted=0 AND id=?", user.UserID)
+	if err != nil {
+		responses.Error(r, err.Error())
+		return
+	}
+
+	// "gray-out" the password
+	account.Password = ""
+
+	responses.OKStatusPlusData(r, account, 1)
 }
-
-// AccountList represents a list of Account objects.
-type AccountList []Account
