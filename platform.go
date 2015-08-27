@@ -173,7 +173,11 @@ func (p *Platform) Delete(path string, handleFunc interface{}) error {
 	if p.Config.SERVER.EnableApplicationAPI == false {
 		return nil
 	}
-	p.Server.Router.Delete(path, handleFunc)
+	p.Server.Router.Delete(path,
+		strict.Accept("application/json", "text/html"),
+		authentication.JWTAuth(p.Server.JWTConfig, nil),
+		handleFunc)
+
 	return nil
 }
 

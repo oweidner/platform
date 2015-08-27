@@ -18,7 +18,7 @@ type OrganisationPlanAssoc struct {
 	OrganisationID  int64       `db:"organisation_id"`
 	PlanID          int64       `db:"plan_id"`
 	PlanName        null.String `db:"plan_name"`
-	StartDate       null.String `db:"start_Date"`
+	StartDate       null.String `db:"start_date"`
 	EndDate         null.String `db:"end_date"`
 	TerminationDate null.String `db:"termination_date"`
 
