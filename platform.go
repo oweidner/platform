@@ -19,10 +19,11 @@ import (
 	"path/filepath"
 
 	"code.google.com/p/gcfg"
+
 	"github.com/attilaolah/strict"
+	"github.com/martini-contrib/binding"
 	"github.com/oweidner/platform/apiserver"
 	"github.com/oweidner/platform/apiserver/authentication"
-	"github.com/martini-contrib/binding"
 
 	"github.com/oweidner/platform/config"
 	"github.com/oweidner/platform/database"
