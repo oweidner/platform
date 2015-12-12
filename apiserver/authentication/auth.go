@@ -19,9 +19,9 @@ import (
 
 	"gopkg.in/guregu/null.v2"
 
-	"github.com/codewerft/platform/apiserver/accesslogs"
-	"github.com/codewerft/platform/apiserver/responses"
-	"github.com/codewerft/platform/database"
+	"github.com/oweidner/platform/apiserver/accesslogs"
+	"github.com/oweidner/platform/apiserver/responses"
+	"github.com/oweidner/platform/database"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gavv/martini-render"

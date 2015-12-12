@@ -17,7 +17,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/codewerft/platform/logging"
+	"github.com/oweidner/platform/logging"
 )
 
 func logError(err error) error {

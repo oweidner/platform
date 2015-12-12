@@ -15,9 +15,9 @@ import (
 	"image/png"
 	"io"
 
-	"github.com/codewerft/platform/apiserver/authentication"
-	"github.com/codewerft/platform/apiserver/responses"
-	"github.com/codewerft/platform/database"
+	"github.com/oweidner/platform/apiserver/authentication"
+	"github.com/oweidner/platform/apiserver/responses"
+	"github.com/oweidner/platform/database"
 
 	"github.com/gavv/martini-render"
 

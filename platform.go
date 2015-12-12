@@ -20,13 +20,13 @@ import (
 
 	"code.google.com/p/gcfg"
 	"github.com/attilaolah/strict"
-	"github.com/codewerft/platform/apiserver"
-	"github.com/codewerft/platform/apiserver/authentication"
+	"github.com/oweidner/platform/apiserver"
+	"github.com/oweidner/platform/apiserver/authentication"
 	"github.com/martini-contrib/binding"
 
-	"github.com/codewerft/platform/config"
-	"github.com/codewerft/platform/database"
-	"github.com/codewerft/platform/logging"
+	"github.com/oweidner/platform/config"
+	"github.com/oweidner/platform/database"
+	"github.com/oweidner/platform/logging"
 )
 
 var (

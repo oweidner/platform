@@ -13,26 +13,26 @@ package apiserver
 import (
 	"fmt"
 
-	"github.com/codewerft/platform/database"
-	"github.com/codewerft/platform/logging"
+	"github.com/oweidner/platform/database"
+	"github.com/oweidner/platform/logging"
 
-	"github.com/codewerft/platform/apiserver/self"
-	"github.com/codewerft/platform/apiserver/self/picture"
+	"github.com/oweidner/platform/apiserver/self"
+	"github.com/oweidner/platform/apiserver/self/picture"
 
-	"github.com/codewerft/platform/apiserver/accounts"
-	"github.com/codewerft/platform/apiserver/accounts/accountpassword"
-	"github.com/codewerft/platform/apiserver/accounts/accountplans"
-	"github.com/codewerft/platform/apiserver/accounts/accountroles"
-	"github.com/codewerft/platform/apiserver/accounts/accountstatus"
-	"github.com/codewerft/platform/apiserver/authentication"
-	"github.com/codewerft/platform/apiserver/organisations"
-	"github.com/codewerft/platform/apiserver/organisations/orgplans"
-	"github.com/codewerft/platform/apiserver/organisations/orgstatus"
+	"github.com/oweidner/platform/apiserver/accounts"
+	"github.com/oweidner/platform/apiserver/accounts/accountpassword"
+	"github.com/oweidner/platform/apiserver/accounts/accountplans"
+	"github.com/oweidner/platform/apiserver/accounts/accountroles"
+	"github.com/oweidner/platform/apiserver/accounts/accountstatus"
+	"github.com/oweidner/platform/apiserver/authentication"
+	"github.com/oweidner/platform/apiserver/organisations"
+	"github.com/oweidner/platform/apiserver/organisations/orgplans"
+	"github.com/oweidner/platform/apiserver/organisations/orgstatus"
 
-	"github.com/codewerft/platform/apiserver/plans"
-	"github.com/codewerft/platform/apiserver/roles"
+	"github.com/oweidner/platform/apiserver/plans"
+	"github.com/oweidner/platform/apiserver/roles"
 
-	"github.com/codewerft/platform/apiserver/accesslogs"
+	"github.com/oweidner/platform/apiserver/accesslogs"
 
 	"github.com/attilaolah/strict"
 	"github.com/gavv/martini-render"

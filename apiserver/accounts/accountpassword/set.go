@@ -11,9 +11,9 @@
 package accountpassword
 
 import (
-	"github.com/codewerft/platform/apiserver/responses"
-	"github.com/codewerft/platform/apiserver/utils"
-	"github.com/codewerft/platform/database"
+	"github.com/oweidner/platform/apiserver/responses"
+	"github.com/oweidner/platform/apiserver/utils"
+	"github.com/oweidner/platform/database"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gavv/martini-render"

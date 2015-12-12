@@ -11,8 +11,8 @@
 package organisations
 
 import (
-	"github.com/codewerft/platform/apiserver/responses"
-	"github.com/codewerft/platform/database"
+	"github.com/oweidner/platform/apiserver/responses"
+	"github.com/oweidner/platform/database"
 
 	"github.com/gavv/martini-render"
 	"github.com/go-martini/martini"

@@ -15,7 +15,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/codewerft/platform/database"
+	"github.com/oweidner/platform/database"
 
 	"gopkg.in/guregu/null.v2"
 )

@@ -16,7 +16,7 @@ import (
 
 	"gopkg.in/gorp.v1"
 
-	"github.com/codewerft/platform/logging"
+	"github.com/oweidner/platform/logging"
 
 	_ "github.com/go-sql-driver/mysql"
 )

@@ -19,7 +19,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/codewerft/platform"
+	"github.com/oweidner/platform"
 )
 
 var (

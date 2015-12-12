@@ -24,23 +24,23 @@ Get a copy of the platform sources:
 
 ```
 export $GOPATH=`pwd`
-go get github.com/codewerft/platform
+go get github.com/oweidner/platform
 ```
 
-The Platform sources are in ` ~/workspace/platform/src/github.com/codewerft/platform`.
+The Platform sources are in ` ~/workspace/platform/src/github.com/oweidner/platform`.
 
 ### Recompile
 
 ???
 
 ```
-go install -a -v github.com/codewerft/platform && go build && ./example -config=sample.cfg
+go install -a -v github.com/oweidner/platform && go build && ./example -config=sample.cfg
 ```
 
 ### Run the tests
 
 ```
- go test github.com/codewerft/platform -test.v --config=tests/test.cfg
+ go test github.com/oweidner/platform -test.v --config=tests/test.cfg
 ```
 
 ### Run the Example
@@ -48,7 +48,7 @@ go install -a -v github.com/codewerft/platform && go build && ./example -config=
 Build the example server:
 
 ```
-cd  ~/workspace/platform/src/github.com/codewerft/platform/example
+cd  ~/workspace/platform/src/github.com/oweidner/platform/example
 go install
 ```
 

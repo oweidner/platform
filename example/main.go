@@ -14,8 +14,8 @@ import (
 	"flag"
 	"net/http"
 
-	"github.com/codewerft/platform"
-	"github.com/codewerft/platform/database"
+	"github.com/oweidner/platform"
+	"github.com/oweidner/platform/database"
 	"github.com/gavv/martini-render"
 	"github.com/go-martini/martini"
 )
