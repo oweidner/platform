@@ -18,7 +18,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"code.google.com/p/gcfg"
+	gcfg "gopkg.in/gcfg.v1"
 
 	"github.com/attilaolah/strict"
 	"github.com/martini-contrib/binding"
