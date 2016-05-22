@@ -15,7 +15,7 @@ import (
 	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gavv/martini-render"
+	"github.com/martini-contrib/render"
 	"github.com/go-martini/martini"
 )
 

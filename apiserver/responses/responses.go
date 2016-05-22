@@ -13,7 +13,7 @@ package responses
 import (
 	"net/http"
 
-	"github.com/gavv/martini-render"
+	"github.com/martini-contrib/render"
 )
 
 type Status struct {

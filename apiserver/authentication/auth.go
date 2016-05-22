@@ -24,7 +24,7 @@ import (
 	"github.com/oweidner/platform/database"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gavv/martini-render"
+	"github.com/martini-contrib/render"
 )
 
 // AuthRequest is the object that is sent to us in order to request

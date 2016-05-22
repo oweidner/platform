@@ -16,7 +16,7 @@ import (
 
 	"github.com/oweidner/platform"
 	"github.com/oweidner/platform/database"
-	"github.com/gavv/martini-render"
+	"github.com/martini-contrib/render"
 	"github.com/go-martini/martini"
 )
 

@@ -13,7 +13,7 @@ package apiserver
 import (
 	"net/http"
 
-	"github.com/gavv/martini-render"
+	"github.com/martini-contrib/render"
 	"github.com/go-martini/martini"
 )
 

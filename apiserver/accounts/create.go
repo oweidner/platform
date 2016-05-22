@@ -15,7 +15,7 @@ import (
 	"github.com/oweidner/platform/database"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/gavv/martini-render"
+	"github.com/martini-contrib/render"
 	"github.com/go-martini/martini"
 )
 

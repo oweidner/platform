@@ -19,7 +19,7 @@ import (
 	"github.com/oweidner/platform/apiserver/responses"
 	"github.com/oweidner/platform/database"
 
-	"github.com/gavv/martini-render"
+	"github.com/martini-contrib/render"
 
 	// Available image format drivers
 	_ "image/gif"
