@@ -23,7 +23,7 @@ import (
 	"github.com/oweidner/platform/apiserver/responses"
 	"github.com/oweidner/platform/database"
 
-	"github.com/dgrijalva/jwt-go"
+	"gopkg.in/dgrijalva/jwt-go.v2"
 	"github.com/martini-contrib/render"
 )
 
@@ -86,22 +86,20 @@ func Auth(u AuthRequest, r render.Render, req *http.Request, db database.Datasto
 	// per role base.
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 
-	c := token.Claims.(jwt.MapClaims)
-
-	c["user_id"] = strconv.FormatInt(userInfo[0].UserID, 10)
-	c["user"] = userInfo[0].Username
-	c["firstname"] = userInfo[0].Firstname
-	c["lastname"] = userInfo[0].Lastname
-	c["org_id"] = strconv.FormatInt(userInfo[0].OrganisationID, 10)
-	c["org_name"] = userInfo[0].OrganisationName
-	c["role_id"] = strconv.FormatInt(userInfo[0].RoleID, 10)
-	c["role_name"] = userInfo[0].RoleName
-	c["exp"] = time.Now().Add(time.Hour * time.Duration(jwtcfg.Get().Expiration)).Unix()
+	token.Claims["user_id"] = strconv.FormatInt(userInfo[0].UserID, 10)
+	token.Claims["user"] = userInfo[0].Username
+	token.Claims["firstname"] = userInfo[0].Firstname
+	token.Claims["lastname"] = userInfo[0].Lastname
+	token.Claims["org_id"] = strconv.FormatInt(userInfo[0].OrganisationID, 10)
+	token.Claims["org_name"] = userInfo[0].OrganisationName
+	token.Claims["role_id"] = strconv.FormatInt(userInfo[0].RoleID, 10)
+	token.Claims["role_name"] = userInfo[0].RoleName
+	token.Claims["exp"] = time.Now().Add(time.Hour * time.Duration(jwtcfg.Get().Expiration)).Unix()
 
 	if userInfo[0].UserID == -1 {
-		c["is_admin"] = true
+		token.Claims["is_admin"] = true
 	} else {
-		c["is_admin"] = false
+		token.Claims["is_admin"] = false
 	}
 
 	tokenString, err := token.SignedString(jwtcfg.Get().PrivateKey)
