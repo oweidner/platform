@@ -15,6 +15,8 @@ import (
 	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go/request"
+
 	"github.com/martini-contrib/render"
 	"github.com/go-martini/martini"
 )
@@ -64,7 +66,7 @@ func JWTAuth(jwtcfg JWTConfig, requiredRole interface{}) martini.Handler {
 	return func(context martini.Context, req *http.Request, r render.Render) {
 
 		// Extract the JWT from the http request
-		token, err := jwt.ParseFromRequest(req, func(token *jwt.Token) (interface{}, error) {
+		token, err := request.ParseFromRequest(req, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
 			return jwtcfg.PublicKey, nil
 		})
 
@@ -86,13 +88,15 @@ func JWTAuth(jwtcfg JWTConfig, requiredRole interface{}) martini.Handler {
 			return
 		}
 
+		c := token.Claims.(jwt.MapClaims)
+
 		// We have a valid token. Now we can check if user and role data
 		// can be extracted, and if so, make sure the user has the correct role.
-		if token.Claims["user_id"] == nil || token.Claims["user"] == nil ||
-			token.Claims["firstname"] == nil || token.Claims["lastname"] == nil ||
-			token.Claims["org_id"] == nil || token.Claims["org_name"] == nil ||
-			token.Claims["role_id"] == nil || token.Claims["role_name"] == nil ||
-			token.Claims["exp"] == nil || token.Claims["is_admin"] == nil {
+		if c["user_id"] == nil || c["user"] == nil ||
+			c["firstname"] == nil || c["lastname"] == nil ||
+			c["org_id"] == nil || c["org_name"] == nil ||
+			c["role_id"] == nil || c["role_name"] == nil ||
+			c["exp"] == nil || c["is_admin"] == nil {
 
 			r.JSON(http.StatusUnauthorized, ErrorResponse{
 				Code:    http.StatusUnauthorized,
@@ -101,7 +105,7 @@ func JWTAuth(jwtcfg JWTConfig, requiredRole interface{}) martini.Handler {
 		}
 
 		// Compare the roles.
-		if requiredRole != nil && token.Claims["org_role"] != requiredRole.(string) {
+		if requiredRole != nil && c["org_role"] != requiredRole.(string) {
 
 			r.JSON(http.StatusUnauthorized, ErrorResponse{
 				Code:    http.StatusUnauthorized,
@@ -110,20 +114,20 @@ func JWTAuth(jwtcfg JWTConfig, requiredRole interface{}) martini.Handler {
 		}
 
 		// Explicit conversion due to weird JWT.Claims behavior.
-		userID, _ := strconv.ParseInt(token.Claims["user_id"].(string), 10, 64)
-		roleID, _ := strconv.ParseInt(token.Claims["role_id"].(string), 10, 64)
-		organisationID, _ := strconv.ParseInt(token.Claims["org_id"].(string), 10, 64)
+		userID, _ := strconv.ParseInt(c["user_id"].(string), 10, 64)
+		roleID, _ := strconv.ParseInt(c["role_id"].(string), 10, 64)
+		organisationID, _ := strconv.ParseInt(c["org_id"].(string), 10, 64)
 
 		context.Map(UserInfo{
 			UserID:           userID,
-			Username:         token.Claims["user"].(string),
-			Firstname:        token.Claims["firstname"].(string),
-			Lastname:         token.Claims["lastname"].(string),
+			Username:         c["user"].(string),
+			Firstname:        c["firstname"].(string),
+			Lastname:         c["lastname"].(string),
 			OrganisationID:   organisationID,
-			OrganisationName: token.Claims["org_name"].(string),
+			OrganisationName: c["org_name"].(string),
 			RoleID:           roleID,
-			RoleName:         token.Claims["role_name"].(string),
-			Expires:          token.Claims["exp"].(float64),
-			IsAdmin:          token.Claims["is_admin"].(bool)})
+			RoleName:         c["role_name"].(string),
+			Expires:          c["exp"].(float64),
+			IsAdmin:          c["is_admin"].(bool)})
 	}
 }
