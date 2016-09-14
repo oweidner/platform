@@ -148,7 +148,6 @@ func New(ds database.Datastore, prefixPath string,
 	ds.GetDBMap().AddTableWithName(accountplans.AccountPlanAssoc{}, "platform_account_plan_assoc").SetKeys(true, "id")
 
 	ds.GetDBMap().AddTableWithName(organisations.Organisation{}, "platform_organisation").SetKeys(true, "id")
-	ds.GetDBMap().AddTableWithName(orgplans.OrganisationPlanAssoc{}, "platform_organisation_plan_assoc").SetKeys(true, "id")
 
 	ds.GetDBMap().AddTableWithName(plans.Plan{}, "platform_plan").SetKeys(true, "id")
 	ds.GetDBMap().AddTableWithName(roles.Role{}, "platform_role").SetKeys(true, "id")
@@ -219,10 +218,11 @@ func New(ds database.Datastore, prefixPath string,
 	// 	GetSelf)
 
 	// Change own password
-	// r.Post("/self/passsword",
-	// 	strict.Accept("application/json", "text/html"),
-	// 	JWTAuth(false, PlatformAdminRole),
-	// 	GetSelf)
+	r.Post("/self/password",
+		strict.Accept("application/json", "text/html"),
+		authentication.JWTAuth(jwtcfg, nil),
+		binding.Bind(accountpassword.AccountPassword{}),
+		accountpassword.Set)
 
 	// We add the platform API *ONLY* if it was enabled in the
 	// configuration file.

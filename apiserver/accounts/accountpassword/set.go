@@ -11,8 +11,9 @@
 package accountpassword
 
 import (
+
+	"github.com/oweidner/platform/apiserver/authentication"
 	"github.com/oweidner/platform/apiserver/responses"
-	"github.com/oweidner/platform/apiserver/utils"
 	"github.com/oweidner/platform/database"
 	"golang.org/x/crypto/bcrypt"
 
@@ -21,13 +22,7 @@ import (
 )
 
 // Create inserts a new object in the database.
-func Set(r render.Render, params martini.Params, db database.Datastore, data AccountPassword) {
-
-	// Parse the resource ID into an int64
-	resourceID, parseError := utils.ParseResourceID(params["p1"])
-	if parseError != nil {
-		responses.Error(r, parseError.Error())
-	}
+func Set(r render.Render, params martini.Params, db database.Datastore, data AccountPassword, user authentication.UserInfo) {
 
 	if len(data.Password.String) < 8 {
 		responses.Error(r, "Passwords need to be at least 8 characters long.")
@@ -43,12 +38,7 @@ func Set(r render.Render, params martini.Params, db database.Datastore, data Acc
 	}
 
 	// Update the database record
-	stmt, err := db.GetDB().Prepare("UPDATE platform_account SET password=? WHERE id=?")
-	if err != nil {
-		responses.Error(r, err.Error())
-		return
-	}
-	_, err = stmt.Exec(pwdHash, resourceID)
+	_, err := db.GetDB().Exec("UPDATE platform_account SET password=? WHERE id=?", pwdHash, user.UserID)
 	if err != nil {
 		responses.Error(r, err.Error())
 		return

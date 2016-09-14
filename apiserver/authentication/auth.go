@@ -73,7 +73,6 @@ func Auth(u AuthRequest, r render.Render, req *http.Request, db database.Datasto
 		return
 	}
 
-	// Found an account by the given name. Now compare the hashed passwords
 	bcryptErr := bcrypt.CompareHashAndPassword([]byte(userInfo[0].Password), []byte(u.Password))
 	if bcryptErr != nil {
 		accesslogs.DBWriteLoginError(db, originIP, userInfo[0].Username, bcryptErr.Error(), null.IntFrom(userInfo[0].UserID))
