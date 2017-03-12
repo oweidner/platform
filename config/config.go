@@ -15,6 +15,31 @@ import (
 	"path"
 )
 
+type Configuration interface {
+	GetCfg() *Config
+}
+
+// The DefaultDatastore provides a sqlite-based storage backend.
+//
+type ServerConfiguration struct {
+	Config Config
+}
+
+// NewDefaultDatastore creates a new SQLiteDatastore object.
+//
+func NewServerConfiguration(config Config) *ServerConfiguration {
+
+	cfg := ServerConfiguration{
+		Config: config,
+	}
+	return &cfg
+}
+
+func (sc *ServerConfiguration) GetCfg() *Config {
+	// ds.Session.Close()
+	return &sc.Config
+}
+
 // The Config struct defines the structure of the configuration file.
 //
 type Config struct {
@@ -39,6 +64,13 @@ type Config struct {
 		PublicKey  string `gcfg:"publickey"`
 		PrivateKey string `gcfg:"privatekey"`
 	}
+
+	SEPA struct {
+		TemplateDebitMaster string
+		TemplateDebitDebtor string
+		TemplateCredit      string
+	}
+
 	MySQL struct {
 		Host     string
 		Database string
@@ -135,6 +167,14 @@ func CheckConfig(config *Config, filename string, basepath string) error {
 	}
 	if path.IsAbs(config.TLS.CertFile) == false {
 		config.TLS.CertFile = path.Join(basepath, config.TLS.CertFile)
+	}
+
+	if path.IsAbs(config.SEPA.TemplateDebitMaster) == false {
+		config.SEPA.TemplateDebitMaster = path.Join(basepath, config.SEPA.TemplateDebitMaster)
+	}
+
+	if path.IsAbs(config.SEPA.TemplateDebitDebtor) == false {
+		config.SEPA.TemplateDebitDebtor = path.Join(basepath, config.SEPA.TemplateDebitDebtor)
 	}
 
 	return nil

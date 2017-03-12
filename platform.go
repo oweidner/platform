@@ -46,6 +46,8 @@ type Platform struct {
 	Server *apiserver.Server
 }
 
+var cf config.Configuration
+
 var ds database.Datastore
 
 // New creates a bare bones Platform instance.
@@ -105,9 +107,11 @@ func New(configFile *string) *Platform {
 	ds = database.NewDefaultDatastore(cfg.MySQL.Host, cfg.MySQL.Database, cfg.MySQL.Username, cfg.MySQL.Password)
 	defer ds.Close()
 
+	cf = config.NewServerConfiguration(cfg)
+
 	// Finally, we start up the Platform API server and inject the storage
 	// and authentication backend instances.
-	server := apiserver.New(ds, cfg.SERVER.PlatformPrefix,
+	server := apiserver.New(ds, cf, cfg.SERVER.PlatformPrefix,
 		!cfg.SERVER.DisableAuth, cfg.SERVER.EnablePlatformAPI,
 		jwtPrivateKey, jwtPublicKey, cfg.JWT.Expiration)
 
@@ -191,7 +195,7 @@ func (p *Platform) Serve() error {
 	// an HTTPS server with the provided X.509 certificates,
 	// otherwise, start an HTTP server.without TLS.
 	if p.Config.TLS.EnableTLS == true {
-		logging.Log.Info("HTTPS/TLS enabled. Using X.509 keypair %v and %v", p.Config.TLS.CertFile, p.Config.TLS.KeyFile)
+		logging.Log.Info(fmt.Sprintf("HTTPS/TLS enabled. Using X.509 keypair %v and %v", p.Config.TLS.CertFile, p.Config.TLS.KeyFile))
 		logging.Log.Info("Codewerft Platform server available at https://localhost%v", p.Config.SERVER.Listen)
 
 		if err := http.ListenAndServeTLS(

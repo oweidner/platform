@@ -10,6 +10,12 @@
 # Platform
 Codewerft Platform is the core of all Codewerft API server applications.
 
+# Recompile and Run - Oct. 2016
+
+```
+go install -v  github.com/oweidner/tutorbox.backend && ./bin/tutorbox.backend --config=etc/sample_local.cfg
+```
+
 
 ## Develop Platform
 

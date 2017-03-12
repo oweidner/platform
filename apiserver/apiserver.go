@@ -13,6 +13,7 @@ package apiserver
 import (
 	"fmt"
 
+	"github.com/oweidner/platform/config"
 	"github.com/oweidner/platform/database"
 	"github.com/oweidner/platform/logging"
 
@@ -36,9 +37,9 @@ import (
 
 	"github.com/attilaolah/strict"
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/cors"
+	"github.com/martini-contrib/render"
 )
 
 // The resource path prefixes
@@ -123,7 +124,7 @@ func (p *Server) Get(path string, fn interface{}) error {
 // 	authEnabled bool, platformEnabled bool, privKey []byte, pubKey []byte, expiration int) *martini.Martini {
 
 // New creates Server instance
-func New(ds database.Datastore, prefixPath string,
+func New(ds database.Datastore, cf config.Configuration, prefixPath string,
 	authEnabled bool, platformEnabled bool, privKey []byte, pubKey []byte, expiration int) *Server {
 
 	// Print a big fat warning if authentication is disabled.
@@ -174,6 +175,7 @@ func New(ds database.Datastore, prefixPath string,
 
 	// Inject datastore
 	m.MapTo(ds, (*database.Datastore)(nil))
+	m.MapTo(cf, (*config.Configuration)(nil))
 
 	var jwtc authentication.JWTConfigIF
 	jwtc = authentication.TheJWTConfig{Config: jwtcfg}
