@@ -12,6 +12,7 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
 	"path"
 )
 
@@ -66,9 +67,14 @@ type Config struct {
 	}
 
 	SEPA struct {
-		TemplateDebitMaster string
-		TemplateDebitDebtor string
-		TemplateCredit      string
+		TemplateFileDebitMaster    string
+		TemplateDebitMaster        string
+		TemplateFileDebitDebtor    string
+		TemplateDebitDebtor        string
+		TemplateFileCreditMaster   string
+		TemplateCreditMaster       string
+		TemplateFileCreditCreditor string
+		TemplateCreditCreditor     string
 	}
 
 	MySQL struct {
@@ -169,13 +175,41 @@ func CheckConfig(config *Config, filename string, basepath string) error {
 		config.TLS.CertFile = path.Join(basepath, config.TLS.CertFile)
 	}
 
-	if path.IsAbs(config.SEPA.TemplateDebitMaster) == false {
-		config.SEPA.TemplateDebitMaster = path.Join(basepath, config.SEPA.TemplateDebitMaster)
+	if path.IsAbs(config.SEPA.TemplateFileDebitMaster) == false {
+		config.SEPA.TemplateFileDebitMaster = path.Join(basepath, config.SEPA.TemplateFileDebitMaster)
 	}
+	tdm, read_err := ioutil.ReadFile(config.SEPA.TemplateFileDebitMaster)
+	if read_err != nil {
+		return fmt.Errorf("%v: 'Can't read TemplateFileDebitMaster: ", config.SEPA.TemplateFileDebitMaster)
+	}
+	config.SEPA.TemplateDebitMaster = string(tdm)
 
-	if path.IsAbs(config.SEPA.TemplateDebitDebtor) == false {
-		config.SEPA.TemplateDebitDebtor = path.Join(basepath, config.SEPA.TemplateDebitDebtor)
+	if path.IsAbs(config.SEPA.TemplateFileDebitDebtor) == false {
+		config.SEPA.TemplateFileDebitDebtor = path.Join(basepath, config.SEPA.TemplateFileDebitDebtor)
 	}
+	tdd, read_err := ioutil.ReadFile(config.SEPA.TemplateFileDebitDebtor)
+	if read_err != nil {
+		return fmt.Errorf("%v: 'Can't read TemplateFileDebitDebtor: ", config.SEPA.TemplateFileDebitDebtor)
+	}
+	config.SEPA.TemplateDebitDebtor = string(tdd)
+
+	if path.IsAbs(config.SEPA.TemplateFileCreditMaster) == false {
+		config.SEPA.TemplateFileCreditMaster = path.Join(basepath, config.SEPA.TemplateFileCreditMaster)
+	}
+	tcm, read_err := ioutil.ReadFile(config.SEPA.TemplateFileCreditMaster)
+	if read_err != nil {
+		return fmt.Errorf("%v: 'Can't read TemplateFileCreditMaster: ", config.SEPA.TemplateFileCreditMaster)
+	}
+	config.SEPA.TemplateCreditMaster = string(tcm)
+
+	if path.IsAbs(config.SEPA.TemplateFileCreditCreditor) == false {
+		config.SEPA.TemplateFileCreditCreditor = path.Join(basepath, config.SEPA.TemplateFileCreditCreditor)
+	}
+	tcc, read_err := ioutil.ReadFile(config.SEPA.TemplateFileCreditCreditor)
+	if read_err != nil {
+		return fmt.Errorf("%v: 'Can't read TemplateFileCreditCreditor: ", config.SEPA.TemplateFileCreditCreditor)
+	}
+	config.SEPA.TemplateCreditCreditor = string(tcc)
 
 	return nil
 }
